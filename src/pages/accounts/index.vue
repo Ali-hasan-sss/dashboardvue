@@ -11,6 +11,9 @@
           :edit="edit"
           :headers="headers"
           @openForm="setForm"
+          @activate="activateAccount"
+          @deactivate="deactivateAccount"
+          @delete="deleteAccount"
         ></Table>
         <!-- Form -->
         <v-dialog class="form" v-model="dialog_form" max-width="500px">
@@ -28,18 +31,21 @@
 
 <script>
 import AccountForm from "../../components/Forms/AccountForm.vue";
+import axios from "axios";
+
 export default {
   data() {
     return {
       isNew: true,
-      edit: false,
+      edit: true, // جعل التعديل ممكنًا
       dialog_form: false,
       api: {
         getAll: "users",
         create: "admin/createAdminAccount",
-        delete: "user/delete?user_id",
+        delete: "user/delete",
+        activate: "user/activate",
+        deactivate: "user/deactivate",
       },
-      //queryParam:"user_id",
       filter: "accounts",
       title: "الحسابات",
       headers: [
@@ -70,6 +76,10 @@ export default {
           value: "role",
         },
         {
+          text: "الحالة",
+          value: "status",
+        },
+        {
           text: "العمليات",
           value: "actions",
           sortable: false,
@@ -97,9 +107,41 @@ export default {
       }
       this.dialog_form = true;
     },
+    async activateAccount(id) {
+      try {
+        await axios.post(`${this.api.activate}/${id}`);
+        this.fetchData(); // تحديث البيانات بعد التفعيل
+      } catch (error) {
+        console.error("Error activating account:", error);
+      }
+    },
+    async deactivateAccount(id) {
+      try {
+        await axios.post(`${this.api.deactivate}/${id}`);
+        this.fetchData(); // تحديث البيانات بعد التعطيل
+      } catch (error) {
+        console.error("Error deactivating account:", error);
+      }
+    },
+    async deleteAccount(id) {
+      try {
+        await axios.delete(`${this.api.delete}/${id}`);
+        this.fetchData(); // تحديث البيانات بعد الحذف
+      } catch (error) {
+        console.error("Error deleting account:", error);
+      }
+    },
+    async fetchData() {
+      try {
+        const response = await axios.get(this.api.getAll);
+        this.tableData = response.data || [];
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    },
   },
-  //  mounted() {
-  //   this.$store.dispatch('initForm', this.form)
-  //  }
+  mounted() {
+    this.fetchData(); // جلب البيانات عند تحميل المكون
+  },
 };
 </script>

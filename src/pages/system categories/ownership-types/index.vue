@@ -2,7 +2,7 @@
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
-        <!-- List -->
+        <!-- قائمة الأنواع -->
         <Table
           newItemLabel="نوع ملكية"
           :filter="filter"
@@ -12,8 +12,23 @@
           :del="del"
           :headers="headers"
           @openForm="setForm"
-        ></Table>
-        <!-- Form -->
+        >
+          <!-- إدراج السويتش في العمود المناسب -->
+          <template v-slot:item.is_active="{ item }">
+            <v-switch
+              v-model="item.is_active"
+              @change="toggleActivation(item)"
+              :label="item.is_active ? 'مفعل' : 'معطل'"
+            ></v-switch>
+          </template>
+          <!-- عرض الأيقونات للتعديل والحذف -->
+          <template v-slot:item.actions="{ item }">
+            <v-icon small @click.stop="setForm(item)">mdi-pencil</v-icon>
+            <v-icon small @click.stop="deleteItem(item.id)">mdi-delete</v-icon>
+          </template>
+        </Table>
+
+        <!-- نموذج التعديل والإضافة -->
         <v-dialog class="form" v-model="dialog_form" max-width="500px">
           <EstateTypeFormSingle
             newItemLabel="نوع ملكية"
@@ -29,20 +44,23 @@
 
 <script>
 import EstateTypeFormSingle from "@/components/Forms/System Categories/EstateTypeFormSingle.vue";
+import axios from "axios";
+
 export default {
   components: { EstateTypeFormSingle },
   data() {
     return {
       isNew: true,
       dialog_form: false,
-      edit: false,
-      del: false,
+      edit: true,
+      del: true,
       api: {
         getAll: "ownershipTypes",
         create: "newOwnershipType",
-        //delete: "deletePriceDomain?price_domain_id"
+        update: "updateOwnershipType",
+        delete: "deleteOwnershipType",
+        toggleActivation: "toggleOwnershipTypeActivation",
       },
-      //queryParam:"user_id",
       filter: "ownership-types",
       title: "أنواع الملكية",
       headers: [
@@ -59,10 +77,16 @@ export default {
           value: "name_ar",
         },
         {
-          text: "الأسم بالاجنبي",
+          text: "الأسم بالإنجليزي",
           align: "start",
           sortable: false,
           value: "name_en",
+        },
+        {
+          text: "الحالة",
+          align: "center",
+          sortable: false,
+          value: "is_active",
         },
         {
           text: "العمليات",
@@ -73,9 +97,22 @@ export default {
     };
   },
   methods: {
-    setForm(val) {
+    async fetchEstateTypes() {
+      try {
+        const response = await axios.get(this.api.getAll);
+        if (response.data && Array.isArray(response.data.data)) {
+          this.estateTypes = response.data.data;
+        } else {
+          console.error("Unexpected data structure:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching estate types:", error);
+      }
+    },
+    setForm(val = null) {
       let form = {
-        name: "",
+        name_ar: "",
+        name_en: "",
       };
       this.$store.dispatch("initForm", form);
       if (val != null) {
@@ -86,9 +123,30 @@ export default {
       }
       this.dialog_form = true;
     },
+    async toggleActivation(item) {
+      try {
+        await axios.post(`${this.api.toggleActivation}/${item.id}`, {
+          is_active: item.is_active,
+        });
+        // يمكنك إعادة تحميل البيانات إذا لزم الأمر
+      } catch (error) {
+        console.error("Error toggling activation:", error);
+      }
+    },
+    async deleteItem(itemId) {
+      try {
+        // بناء عنوان URL بشكل صحيح
+        const url = `${this.api.delete}/${itemId}`;
+        console.log("Deleting item at URL:", url); // تحقق من عنوان URL
+        await axios.delete(url);
+        this.fetchEstateTypes(); // إعادة تحميل البيانات بعد الحذف
+      } catch (error) {
+        console.error("Error deleting item:", error);
+      }
+    },
   },
-  //  mounted() {
-  //   this.$store.dispatch('initForm', this.form)
-  //  }
+  mounted() {
+    this.fetchEstateTypes(); // تحميل البيانات عند تحميل الصفحة
+  },
 };
 </script>

@@ -2,9 +2,7 @@
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
-        <!-- زر "تصدير إلى Excel" كمكون فرعي -->
         <ExportToExcelButton class="excel-btn" :tableData="tableData" />
-
         <!-- Tabs -->
         <v-tabs-items class="mt-5" v-model="tab">
           <v-tab-item>
@@ -46,6 +44,7 @@
 <script>
 import ExportToExcelButton from "@/components/ExportToExcelButton.vue";
 import StatusForm from "@/components/Forms/StatusForm";
+import axios from "@/plugins/axios";
 export default {
   data() {
     return {
@@ -108,7 +107,7 @@ export default {
           sortable: false,
         },
       ],
-      tableData: [], // البيانات التي سيتم تصديرها إلى Excel
+      tableData: [], // data for export to Excel
     };
   },
   components: {
@@ -151,16 +150,15 @@ export default {
     async fetchData() {
       try {
         const response = await axios.get(this.getApiUrl());
-        console.log("Fetched Data:", response.data); // تحقق من البيانات القادمة من الـ API
-        this.tableData = response.data.data || []; // تحديث tableData
-        console.log("Updated tableData:", this.tableData); // تحقق من أن tableData يتم تحديثه بشكل صحيح
+        console.log("Fetched Data:", response.data);
+        this.tableData = response.data.data || []; // update tableData
+        // console.log("Updated tableData:", this.tableData); //comferm update tableData for export to excel
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     },
-
     getApiUrl() {
-      return this.pending_api_packets.getAll; // التأكد من أن API URL يتم استرجاعه بشكل صحيح
+      return this.pending_api_packets.getAll;
     },
   },
   mounted() {

@@ -1,8 +1,9 @@
 import axios from "axios";
-window.axios = require("axios");
+
 export const adminRoot = "/app";
+
 // SERVER_MODE [localhost, dev, live]
-const SERVER_MODE = "dev"
+const SERVER_MODE = "dev";
 
 /********************************************************************
  * LocalHost Credentials
@@ -22,8 +23,16 @@ const dev_baseURL = "https://api-dev.swesshome.com/api/";
 const live_img_baseURL = "https://backend.swesshome.com/storage/";
 const live_baseURL = "https://backend.swesshome.com/api/";
 
-axios.defaults.headers.common['Accept-Language'] = 'ar';
-axios.defaults.headers.common['lang'] = 'ar';
+axios.defaults.headers.common["Accept-Language"] = "ar";
+axios.defaults.headers.common["lang"] = "ar";
 
-export const img_baseUrl = live_img_baseURL;//  (SERVER_MODE=="localhost")? local_img_baseURL: (SERVER_MODE=="dev")? dev_img_baseURL : live_img_baseURL;
-axios.defaults.baseURL = (SERVER_MODE=="localhost")? local_baseURL: (SERVER_MODE=="dev")? dev_baseURL : live_baseURL;
+export const img_baseUrl = live_img_baseURL; // تعيين الـ base URL حسب SERVER_MODE
+axios.defaults.baseURL =
+  SERVER_MODE === "localhost"
+    ? local_baseURL
+    : SERVER_MODE === "dev"
+    ? dev_baseURL
+    : live_baseURL;
+
+// تصدير axios كـ default export
+export default axios;

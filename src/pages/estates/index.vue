@@ -214,11 +214,14 @@
 <script>
 import EstateForm from "@/components/Forms/EstateForm";
 import StatusForm from "@/components/Forms/StatusForm";
+import axios from "@/plugins/axios";
+
 import ExportToExcelButton from "@/components/ExportToExcelButton.vue";
 
 export default {
   data() {
     return {
+      tableData: [],
       pagination: {
         current_page: 1,
         next_page: "\/?page=1",
@@ -456,7 +459,6 @@ export default {
           sortable: false,
         },
       ],
-      tableData: [], // البيانات التي سيتم تصديرها إلى Excel
     };
   },
   components: {
@@ -589,7 +591,7 @@ export default {
     setForm(val) {
       this.fetchData();
 
-      console.log(val);
+      //  console.log(val);
       let form = {
         estate_status_id: "",
         estate_office_id: "", //
@@ -672,7 +674,8 @@ export default {
     tab(newTab) {
       this.pagination.current_page = 1;
       this.pagination.last_page = 1;
-      (this.pagination.next_page = "\/?page=1"), this.fetchData();
+      this.pagination.next_page = "\/?page=1";
+      this.fetchData();
 
       if (newTab === 3) {
         this.value1 = true;
@@ -681,7 +684,7 @@ export default {
       }
     },
     "pagination.current_page"(newPage) {
-      this.updateApi();
+      this.fetchData();
     },
   },
 };

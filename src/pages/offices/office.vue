@@ -1,5 +1,6 @@
 <template>
   <v-container v-if="!isLoad" fluid class="icons-page">
+    <exportToExcel class="excel-btn" :tableData="tableData" />
     <v-card class="mx-1">
       <v-card-text class="font-weight-bold d-flex">
         <v-chip small label>
@@ -21,8 +22,12 @@
         <v-card min-height="250px" class="mx-1">
           <v-card-text class="font-weight-bold">
             <div class="d-flex justify-space-between" v-if="item.office">
-              <v-list-item-avatar tile size="80" color="grey" style="    border-radius: 50% !important;"
-                ><img :src="`${img_baseUrl}` + item.office.logo" 
+              <v-list-item-avatar
+                tile
+                size="80"
+                color="grey"
+                style="border-radius: 50% !important"
+                ><img :src="`${img_baseUrl}` + item.office.logo"
               /></v-list-item-avatar>
               <span>
                 <v-avatar class="blue lighten-2" size="30">
@@ -116,7 +121,12 @@
         <v-card>
           <v-card-subtitle> تعديل المكتب </v-card-subtitle>
           <v-card-text>
-            <v-btn classes="mx-1" depressed color="primary" @click="setForm(true)">
+            <v-btn
+              classes="mx-1"
+              depressed
+              color="primary"
+              @click="setForm(true)"
+            >
               تعديل المكتب
             </v-btn>
           </v-card-text>
@@ -273,10 +283,12 @@
 <script>
 import { img_baseUrl } from "@/plugins/axios";
 import GeneralForm from "../../components/Forms/GeneralForm";
+import exportToExcel from "../../components/ExportToExcelButton.vue";
 
 export default {
   data() {
     return {
+      tableData: [], // مصفوفة لتخزين بيانات الجدول
       img_baseUrl,
       open_img: false,
       dialog_form_offer: false,
@@ -296,10 +308,22 @@ export default {
           name: "العدد",
           key: "offers",
         },
+        {
+          name: "اسم المكتب",
+          key: "name",
+        },
+        {
+          name: "الموقع",
+          key: "location",
+        },
+        {
+          name: "رقم الهاتف",
+          key: "telephone",
+        },
       ],
     };
   },
-  components: { GeneralForm },
+  components: { GeneralForm, exportToExcel },
   methods: {
     formatDate(val) {
       var data = new Date(val);
@@ -335,7 +359,7 @@ export default {
       // initialize form
       this.$store.dispatch("initForm", form);
       this.isNew = true;
-      if (isOffice ) {
+      if (isOffice) {
         console.log(this.item.office);
         this.$store.dispatch("setForm", {
           office_id: this.item.office.id,
@@ -346,8 +370,8 @@ export default {
           latitude: this.item.office.latitude,
           telephone: this.item.office.telephone,
           location_id: this.item.office.location.locations[0].id,
-        })
-       
+        });
+
         this.dialog_edit = true;
       } else {
         console.log(this.item.office.id);
@@ -355,6 +379,33 @@ export default {
           office_id: this.item.office.id,
         });
         this.dialog_form_offer = true;
+      }
+    },
+    populateTableData() {
+      if (this.item && this.item.office) {
+        this.tableData = [
+          {
+            name: "عدد العروض العقارية",
+            offers: this.item.office.available_offers_count,
+          },
+          {
+            name: "عدد الترشيحات العقارية",
+            offers: this.item.office.available_candidates_count,
+          },
+          {
+            name: "اسم المكتب",
+            offers: this.item.office.name,
+          },
+          {
+            name: "الموقع",
+            offers: this.item.office.location.locations[0].name, // Assuming 'location' is stored in a sub-property 'name'
+          },
+          {
+            name: "رقم الهاتف",
+            offers: this.item.office.telephone,
+          },
+          // يمكنك إضافة المزيد من البيانات حسب الحاجة
+        ];
       }
     },
   },
@@ -369,6 +420,14 @@ export default {
       return this.$store.getters.getLoadingItem;
     },
   },
+  watch: {
+    item: {
+      handler(newVal) {
+        this.populateTableData();
+      },
+      immediate: true,
+    },
+  },
   mounted() {
     this.$store.dispatch(
       "fetchItem",
@@ -377,3 +436,9 @@ export default {
   },
 };
 </script>
+
+<style>
+.excel-btn {
+  margin-bottom: 5px;
+}
+</style>

@@ -12,7 +12,7 @@ import Vue2Editor from "vue2-editor";
 import * as VueGoogleMaps from "vue2-google-maps";
 import { initializeApp } from "firebase/app";
 //import 'firebase/messaging';
-
+Vue.prototype.$http = axios; // توفير axios عبر Vue instance
 const firebaseConfig = {
   apiKey: "AIzaSyCkOgAvwQpwZbTJwmp6_l25TAddoS9_Bok",
   authDomain: "swesshome-29b19.firebaseapp.com",

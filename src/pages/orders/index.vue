@@ -2,9 +2,7 @@
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
-        <!-- زر "تصدير إلى Excel" كمكون فرعي -->
         <ExportToExcelButton class="excel-btn" :tableData="tableData" />
-
         <!-- Tabs -->
         <v-tabs v-model="tab" align-with-title>
           <v-tabs-slider color="yellow"></v-tabs-slider>
@@ -127,11 +125,14 @@
 <script>
 import orderDailog from "@/components/orderDailog";
 import StatusForm from "@/components/Forms/StatusForm";
+import axios from "@/plugins/axios";
+
 import ExportToExcelButton from "@/components/ExportToExcelButton.vue";
 
 export default {
   data() {
     return {
+      tableData: [],
       pagination: {
         current_page: 1,
         next_page: 2,
@@ -190,7 +191,6 @@ export default {
         { text: "ملاحظات", value: "notes" },
         { text: "العمليات", value: "actions", sortable: false },
       ],
-      tableData: [], // البيانات التي سيتم تصديرها إلى Excel
     };
   },
   components: {
@@ -200,10 +200,18 @@ export default {
   },
   methods: {
     updateApi() {
-      this.accepted_api.getAll = `estateOrder/showAll?page=${this.pagination.current_page}`;
-      this.pending_api.getAll = `admin/pendingEstateOrders?page=${this.pagination.current_page}`;
-      this.rejected_api.getAll = `admin/getRejectedEstateOrders?page=${this.pagination.current_page}`;
+      const apiUrl = this.getApiUrl();
+      axios
+        .get(apiUrl)
+        .then((response) => {
+          this.tableData = response.data.data || [];
+          this.pagination = response.data.pagination;
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
     },
+
     getApiUrl() {
       switch (this.tab) {
         case 0:
@@ -218,15 +226,12 @@ export default {
     },
     async fetchData() {
       try {
-        const apiUrl = this.getApiUrl(); // الحصول على عنوان API
-        const response = await axios.get(apiUrl); // إجراء الطلب إلى API
-
-        // console.log("Full Response Data:", response.data); // طباعة البيانات كاملة
-        this.tableData = response.data.data || []; // تعيين البيانات التي تم الحصول عليها من المفتاح data
-        this.pagination = response.data.pagination; // تعيين بيانات التصفح
-        // console.log("Fetched Data:", this.tableData); // التحقق من البيانات
+        const apiUrl = this.getApiUrl();
+        const response = await axios.get(apiUrl);
+        this.tableData = response.data.data || [];
+        this.pagination = response.data.pagination;
       } catch (error) {
-        console.error("Error fetching data:", error); // التعامل مع الأخطاء
+        console.error("Error fetching data:", error);
       }
     },
     onPageChange(page) {

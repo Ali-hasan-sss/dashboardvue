@@ -2,7 +2,6 @@
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
-        <!-- زر "تصدير إلى Excel" كمكون فرعي -->
         <ExportToExcelButton class="excel-btn" :tableData="tableData" />
 
         <!-- List -->
@@ -27,7 +26,7 @@
 
 <script>
 import ExportToExcelButton from "@/components/ExportToExcelButton.vue";
-
+import axios from "@/plugins/axios";
 export default {
   components: { ExportToExcelButton },
 
@@ -41,12 +40,9 @@ export default {
       create: false,
       api: {
         getAll: "applicationRating/getAll",
-        //delete: "deletePriceDomain?price_domain_id"
       },
-      //queryParam:"user_id",
       filter: "rates",
       title: "تقييمات المستخدمين ",
-
       headers: [
         {
           text: "رمز المستخدم",
@@ -55,12 +51,11 @@ export default {
           value: "user_id",
         },
         {
-          text: " اسم المستخدم ",
+          text: "اسم المستخدم",
           align: "start",
           sortable: false,
           value: "user_name",
         },
-
         {
           text: "التقيم",
           align: "start",
@@ -73,7 +68,6 @@ export default {
           sortable: false,
           value: "notes",
         },
-
         {
           text: "تاريخ التقييم",
           align: "start",
@@ -81,7 +75,7 @@ export default {
           value: "created_at",
         },
       ],
-      tableData: [], // البيانات التي سيتم تصديرها إلى Excel
+      tableData: [],
     };
   },
 
@@ -103,7 +97,7 @@ export default {
       try {
         const response = await axios.get(this.getApiUrl());
         this.tableData = response.data.data || [];
-        // console.log("Fetched Data:", this.tableData); // تحقق من البيانات
+        //   console.log("Fetched Data:", this.tableData); // تحقق من البيانات
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -115,9 +109,5 @@ export default {
   mounted() {
     this.fetchData(); // جلب البيانات عند تحميل الصفحة
   },
-
-  //  mounted() {
-  //   this.$store.dispatch('initForm', this.form)
-  //  }
 };
 </script>

@@ -2,9 +2,12 @@
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
+        <!-- تصدير إلى Excel -->
+        <ExportToExcelButton :tableData="tableData" />
+
         <!-- List -->
         <Table
-          newItemLabel="باقة عروض "
+          newItemLabel="باقة عروض"
           :filter="filter"
           :title="title"
           :api="api"
@@ -32,10 +35,14 @@
 
 <script>
 import GeneralForm from "../../components/Forms/GeneralForm";
+import ExportToExcelButton from "../../components/ExportToExcelButton.vue";
+import axios from "../../plugins/axios";
 
 export default {
+  components: { GeneralForm, ExportToExcelButton },
   data() {
     return {
+      tableData: [],
       isNew: true,
       dialog_form: false,
       api: {
@@ -81,15 +88,15 @@ export default {
       ],
     };
   },
-  components: { GeneralForm },
   methods: {
     setForm(val) {
-      let form = {
+      const form = {
         size: null,
         price: null,
       };
       this.$store.dispatch("initForm", form);
-      if (val != null) {
+
+      if (val) {
         this.isNew = false;
         this.$store.dispatch("setForm", val);
       } else {
@@ -97,9 +104,18 @@ export default {
       }
       this.dialog_form = true;
     },
+    async fetchData() {
+      try {
+        const response = await axios.get(this.api.getAll);
+        this.tableData = response.data;
+        // console.log("Fetched data:", this.tableData); // تحقق من البيانات
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    },
   },
-  //  mounted() {
-  //   this.$store.dispatch('initForm', this.form)
-  //  }
+  mounted() {
+    this.fetchData();
+  },
 };
 </script>

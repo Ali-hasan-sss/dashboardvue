@@ -2,10 +2,8 @@
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
-        <!-- زر "إضافة مكتب عقاري" كمكون فرعي -->
         <AddRealEstateOfficeButton @openForm="setForm" />
 
-        <!-- نموذج إضافة/تعديل مكتب عقاري -->
         <v-dialog v-model="dialog_form" max-width="500px">
           <OfficeForm
             v-if="dialog_form"
@@ -17,10 +15,8 @@
           ></OfficeForm>
         </v-dialog>
 
-        <!-- زر "تصدير إلى Excel" كمكون فرعي -->
         <ExportToExcelButton class="excel-btn" :tableData="data" />
 
-        <!-- جدول عرض المكاتب العقارية -->
         <Table
           newItemLabel="مكتب"
           :filter="filter"
@@ -44,7 +40,6 @@
           @input="onPageChange"
         ></v-pagination>
 
-        <!-- نموذج اتفاقية مكتب -->
         <v-dialog v-model="dialog_agreement" max-width="500px">
           <OfficeAgreementForm
             v-if="dialog_agreement"
@@ -65,7 +60,7 @@ import OfficeAgreementForm from "../../components/Forms/OfficeAgreementForm.vue"
 import AddRealEstateOfficeButton from "../../components/AddRealEstateOfficeButton.vue";
 import ExportToExcelButton from "../../components/ExportToExcelButton.vue";
 import { mapActions } from "vuex";
-import axios from "axios"; // تأكد من تضمين axios إذا كنت ستستخدمه لجلب البيانات
+import axios from "axios";
 
 export default {
   components: {
