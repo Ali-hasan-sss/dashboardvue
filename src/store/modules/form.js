@@ -1,10 +1,14 @@
 import axios from "axios";
+
 const state = () => ({
-  form: {},
+  form: {
+    password: '',
+  },
   item: {},
   loadingForm: true,
   loadingItem: true,
 });
+
 const actions = {
   async sendForm({ dispatch, commit }, info) {
     commit("SET_LOADING", true);
@@ -20,7 +24,6 @@ const actions = {
         info.form
       )
       .then((res) => {
-        // let resultData = res.data.data;
         dispatch("fetchTableData", info);
         this._vm.$toast.success("تمت العملية بنجاح");
       })
@@ -72,18 +75,10 @@ const actions = {
 };
 
 const getters = {
-  getForm: (state) => {
-    return state.form;
-  },
-  getItem: (state) => {
-    return state.item;
-  },
-  getLoadingForm: (state) => {
-    return state.loadingForm;
-  },
-  getLoadingItem: (state) => {
-    return state.loadingItem;
-  },
+  getForm: (state) => state.form,
+  getItem: (state) => state.item,
+  getLoadingForm: (state) => state.loadingForm,
+  getLoadingItem: (state) => state.loadingItem,
 };
 
 const mutations = {
@@ -92,9 +87,10 @@ const mutations = {
   },
   SET_FORM(state, payload) {
     let temp_form = state.form;
-    let t;
-    for (t in temp_form) {
-      state.form[t] = payload[t];
+    for (let key in temp_form) {
+      if (payload[key] !== undefined) {
+        state.form[key] = payload[key];
+      }
     }
   },
   SET_ITEM(state, payload) {

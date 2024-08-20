@@ -11,15 +11,8 @@
               <div color="grey">
                 <img
                   width="150"
-                  :src="
-                    form.newLogo ? form.newLogo : `${img_baseUrl}` + form.logo
-                  "
-                  style="
-                    height: 80px;
-                    min-width: 80px;
-                    width: 80px;
-                    border-radius: 50%;
-                  "
+                  :src="form.newLogo ? form.newLogo : `${img_baseUrl}${form.logo}`"
+                  style="height: 80px; min-width: 80px; width: 80px; border-radius: 50%;"
                 />
               </div>
             </v-col>
@@ -39,12 +32,7 @@
                 type="text"
                 :model="form.name"
                 :errorMessages="nameErrors"
-                @changeValue="
-                  (val) => {
-                    form.name = val;
-                    $v.form.name.$touch();
-                  }
-                "
+                @changeValue="(val) => { form.name = val; $v.form.name.$touch(); }"
               ></Input>
             </v-col>
             <v-col cols="12">
@@ -52,11 +40,7 @@
                 label="الهاتف"
                 type="text"
                 :model="form.telephone"
-                @changeValue="
-                  (val) => {
-                    form.telephone = val;
-                  }
-                "
+                @changeValue="(val) => { form.telephone = val; }"
               ></Input>
             </v-col>
             <v-col cols="12">
@@ -65,12 +49,7 @@
                 type="number"
                 :model="form.longitude"
                 :errorMessages="longitudeErrors"
-                @changeValue="
-                  (val) => {
-                    form.longitude = val;
-                    $v.form.longitude.$touch();
-                  }
-                "
+                @changeValue="(val) => { form.longitude = val; $v.form.longitude.$touch(); }"
               ></Input>
             </v-col>
             <v-col cols="12">
@@ -79,12 +58,7 @@
                 type="text"
                 :model="form.latitude"
                 :errorMessages="latitudeErrors"
-                @changeValue="
-                  (val) => {
-                    form.latitude = val;
-                    $v.form.latitude.$touch();
-                  }
-                "
+                @changeValue="(val) => { form.latitude = val; $v.form.latitude.$touch(); }"
               ></Input>
             </v-col>
             <v-col cols="12">
@@ -94,25 +68,24 @@
                 attr="location_id"
                 :errorMessages="location_idErrors"
                 label="ضمن المنطقة"
-                @select="
-                  (val) => {
-                    form.location_id = val.value;
-                    $v.form.location_id.$touch();
-                  }
-                "
+                @select="(val) => { form.location_id = val.value; $v.form.location_id.$touch(); }"
               >
               </FormSelect>
+            </v-col>
+            <!-- Add password field here -->
+            <v-col cols="12">
+              <Input
+                label="كلمة المرور الجديدة"
+                type="password"
+                :model="form.password"
+                @changeValue="(val) => { form.password = val; }"
+              ></Input>
             </v-col>
           </v-row>
         </v-container>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <!-- <v-btn
-    color="blue darken-1"
-    text>
-    Cancel
-   </v-btn> -->
         <div>
           <Button color="blue darken-1" type="submit" label="حفظ"> </Button>
         </div>
@@ -121,11 +94,13 @@
   </v-form>
 </template>
 
+
 <script>
 import { img_baseUrl } from "@/plugins/axios";
 import { validationMixin } from "vuelidate";
-import { required, maxLength, email } from "vuelidate/lib/validators";
+import { required } from "vuelidate/lib/validators";
 import { mapGetters, mapActions } from "vuex";
+
 export default {
   mixins: [validationMixin],
   props: {
@@ -134,18 +109,11 @@ export default {
   },
   validations: {
     form: {
-      name: {
-        required,
-      },
-      longitude: {
-        required,
-      },
-      latitude: {
-        required,
-      },
-      location_id: {
-        required,
-      },
+      name: { required },
+      longitude: { required },
+      latitude: { required },
+      location_id: { required },
+      password: {}, // Add validation for password if necessary
     },
   },
   data() {
@@ -162,39 +130,6 @@ export default {
   },
   computed: {
     ...mapGetters(["getForm", "getLocations"]),
-    getUrl(file) {
-      console.log(file);
-      return URL.createObjectURL(file);
-    },
-    nameErrors() {
-      const errors = [];
-      if (!this.$v.form.name.$dirty) return errors;
-      !this.$v.form.name.required && errors.push(this.name_error_msgs.required);
-      return errors;
-    },
-    longitudeErrors() {
-      const errors = [];
-      if (!this.$v.form.longitude.$dirty) return errors;
-      !this.$v.form.longitude.required &&
-        errors.push(this.required_error_msgs.required);
-      return errors;
-    },
-
-    latitudeErrors() {
-      const errors = [];
-      if (!this.$v.form.latitude.$dirty) return errors;
-      !this.$v.form.latitude.required &&
-        errors.push(this.required_error_msgs.required);
-      return errors;
-    },
-    location_idErrors() {
-      const errors = [];
-      if (!this.$v.form.location_id.$dirty) return errors;
-      !this.$v.form.location_id.required &&
-        errors.push(this.required_error_msgs.required);
-      return errors;
-    },
-
     form() {
       return this.getForm;
     },
@@ -205,43 +140,24 @@ export default {
       return this.getLocations;
     },
   },
-  watch: {
-    model() {},
-  },
   methods: {
     ...mapActions(["fetchLocations"]),
     selectImage(val) {
-      console.log(val);
       this.form.logo = val;
       this.form.newLogo = URL.createObjectURL(val);
     },
     save() {
       if (!this.$v.form.$invalid) {
         let formdata = new FormData();
-
-        // إضافة الحقول إلى FormData
         for (let f in this.form) {
           if (this.form.hasOwnProperty(f)) {
             formdata.append(f, this.form[f]);
           }
         }
-
-        if (this.form.hasOwnProperty("newLogo")) {
-          formdata.append("logo_changed", 1);
-        } else {
-          formdata.append("logo_changed", 0);
-        }
-
+        formdata.append("logo_changed", this.form.newLogo ? 1 : 0);
         if (!this.isNew) {
           formdata.append("_method", "PUT");
         }
-
-        // طباعة القيم المرسلة للتأكد
-        console.log("API Endpoint:", this.api);
-        console.log("Form Data:", ...formdata.entries());
-        console.log("Is New:", this.isNew);
-
-        // إرسال النموذج عبر Vuex
         this.$store
           .dispatch("sendForm", {
             api: this.api,
@@ -249,11 +165,9 @@ export default {
             isNew: this.isNew,
           })
           .then((response) => {
-            console.log("Response:", response);
             this.$emit("dialogForm", false);
           })
           .catch((error) => {
-            console.error("Error:", error);
             this.$toast.error("حدث خطأ أثناء حفظ المكتب العقاري.");
           });
       } else {

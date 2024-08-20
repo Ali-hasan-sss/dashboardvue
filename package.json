@@ -2,12 +2,13 @@
   "name": "SWESS.HOME.ADMIN",
   "version": "1.2.0",
   "private": true,
-  "scripts": {
-    "dev": "vue-cli-service serve --open",
-    "serve": "set NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
-  },
+"scripts": {
+  "dev": "vue-cli-service serve --open",
+  "serve": "vue-cli-service serve",
+  "build": "vue-cli-service build",
+  "lint": "vue-cli-service lint"
+},
+
   "dependencies": {
     "@firebase/messaging": "^0.12.4",
     "apexcharts": "^3.26.0",

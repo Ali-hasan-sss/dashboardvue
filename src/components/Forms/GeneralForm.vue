@@ -32,11 +32,11 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <!-- <v-btn
+         <v-btn
     color="blue darken-1"
     text>
     Cancel
-   </v-btn> -->
+   </v-btn> 
         <div>
           <Button color="blue darken-1" type="submit" label="حفظ"> </Button>
         </div>
