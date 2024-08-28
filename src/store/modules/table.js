@@ -100,19 +100,16 @@ const actions = {
   async fetchTableData({ commit }, api_info) {
     commit("SET_LOADING", true);
     commit("SET_TABLE_DATA", []);
-    var filter = this.state.filter.filter;
-    // Object.keys(filter)
-    //     .forEach(function eachKey(object_key) {
-    //         if (filter[object_key] != null && filter[object_key].hasOwnProperty("key")) {
-    //             if (filter[object_key].key == null) {
-    //                 filter[object_key] = null
-    //             }
-    //         }
-    //     });
 
-    let params = {
-      params: filter,
-    };
+    if (!api_info.api || !api_info.api.getAll) {
+      console.error("API or getAll endpoint is undefined.");
+      commit("SET_LOADING", false);
+      return;
+    }
+
+    var filter = this.state.filter.filter;
+    let params = { params: filter };
+
     await axios
       .get(`${api_info.api.getAll}`, params)
       .then((res) => {
@@ -125,7 +122,6 @@ const actions = {
         commit("SET_LOADING", false);
       });
   },
-
   async fetchTableDataFilter({ commit }, api_info) {
     commit("SET_LOADING", true);
     commit("SET_TABLE_DATA", []);
@@ -176,8 +172,7 @@ const actions = {
     commit("SET_LOADING", true);
     commit("SET_TABLE_DATA", []);
     await axios
-      .delete( `${data.api.delete}=${data.id}`
-      )
+      .delete(`${data.api.delete}=${data.id}`)
       .then(() => {
         this._vm.$toast.success("تمت عملية الحذف بنجاح");
       })
@@ -252,27 +247,17 @@ const mutations = {
           `${filterKeyArray[i]}` == "price"
         ) {
           let itemValue = +item[`${filterKeyArray[i]}`];
-          let filterValue = +payload.filter[`${filterKeyArray[i]}`].value
+          let filterValue = +payload.filter[`${filterKeyArray[i]}`].value;
 
           switch (payload.filter[`${filterKeyArray[i]}`].key) {
             case "bigger":
-              return (
-                itemValue >
-                filterValue
-              );
+              return itemValue > filterValue;
 
             case "smaller":
-
-              return (
-                itemValue <
-                filterValue
-              );
+              return itemValue < filterValue;
 
             default:
-              return (
-                itemValue ==
-                filterValue
-              );
+              return itemValue == filterValue;
           }
         } else if (`${filterKeyArray[i]}` == "date") {
           const diffTime = Math.abs(new Date() - new Date(item.created_at));

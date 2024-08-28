@@ -2,7 +2,7 @@ import axios from "axios";
 
 const state = () => ({
   form: {
-    password: '',
+    password: "",
   },
   item: {},
   loadingForm: true,
@@ -12,25 +12,18 @@ const state = () => ({
 const actions = {
   async sendForm({ dispatch, commit }, info) {
     commit("SET_LOADING", true);
-    await axios
-      .post(
-        `${
-          !info.isNew
-            ? info.edit == "edit_state"
-              ? info.api.edit_state
-              : info.api.edit
-            : info.api.create
-        }`,
+    try {
+      await axios.post(
+        `${!info.isNew ? info.api.edit : info.api.create}`,
         info.form
-      )
-      .then((res) => {
-        dispatch("fetchTableData", info);
-        this._vm.$toast.success("تمت العملية بنجاح");
-      })
-      .catch((err) => {
-        dispatch("fetchTableData", info);
-        this._vm.$toast.error("فشلت العملية");
-      });
+      );
+      dispatch("fetchTableData");
+      this._vm.$toast.success("تمت العملية بنجاح");
+    } catch (err) {
+      this._vm.$toast.error("فشلت العملية");
+    } finally {
+      commit("SET_LOADING", false);
+    }
   },
   async fetchForm({ commit }, api) {
     commit("SET_LOADING", true);
@@ -86,18 +79,17 @@ const mutations = {
     state.tableData = payload;
   },
   SET_FORM(state, payload) {
-    let temp_form = state.form;
-    for (let key in temp_form) {
-      if (payload[key] !== undefined) {
+    Object.keys(state.form).forEach((key) => {
+      if (payload.hasOwnProperty(key)) {
         state.form[key] = payload[key];
       }
-    }
+    });
   },
   SET_ITEM(state, payload) {
     state.item = payload;
   },
   SET_INIT_FORM(state, payload) {
-    state.form = payload;
+    state.form = { ...state.form, ...payload }; // تأكد من أن form يتم تهيئته بشكل صحيح
   },
   SET_LOADING(state, payload) {
     state.loadingForm = payload;

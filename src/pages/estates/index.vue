@@ -2,7 +2,6 @@
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
-        <!-- زر "تصدير إلى Excel" كمكون فرعي -->
         <ExportToExcelButton class="excel-btn" :tableData="tableData" />
 
         <!-- Tabs -->
@@ -576,13 +575,10 @@ export default {
     },
     onPageChange(page) {
       if (page === "next") {
-        // Navigate to the route with the next page
         this.pagination.current_page = this.pagination.next_page;
       } else if (page === "prev") {
-        // Navigate to the route with the previous page
         this.pagination.current_page = this.pagination.current_page - 1;
       } else {
-        // Set the current page to the clicked page number
         this.pagination.current_page = page;
       }
       this.updateApi();

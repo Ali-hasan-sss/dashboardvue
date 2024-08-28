@@ -25,6 +25,7 @@
             newItemLabel="عرض"
             :isNew="isNew"
             :api="api"
+            @saveForm="handleFormSave"
             @dialogForm="dialog_form = false"
           ></GeneralForm>
         </v-dialog>
@@ -107,13 +108,31 @@ export default {
     async fetchData() {
       try {
         const response = await axios.get(this.api.getAll);
-        this.tableData = response.data;
-        // console.log("Fetched data:", this.tableData); // تحقق من البيانات
+        this.tableData = response.data.data;
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     },
+    async handleFormSave() {
+      try {
+        const apiEndpoint = this.isNew
+          ? this.api.create
+          : `${this.api.create}/${this.$store.getters.getForm.id}`;
+
+        if (this.isNew) {
+          await axios.post(apiEndpoint, this.$store.getters.getForm);
+        } else {
+          await axios.put(apiEndpoint, this.$store.getters.getForm);
+        }
+
+        this.dialog_form = false;
+        this.fetchData(); // تحديث البيانات بعد إضافة العرض الجديد
+      } catch (error) {
+        console.error("Error saving form:", error);
+      }
+    },
   },
+
   mounted() {
     this.fetchData();
   },

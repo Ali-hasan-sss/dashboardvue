@@ -216,9 +216,9 @@ export default {
       try {
         const apiUrl = this.getApiUrlForTab(this.tab); // جلب رابط الـ API بناءً على التبويب الحالي
         const response = await axios.get(apiUrl); // طلب البيانات من API
-        console.log("Full Response Data:", response.data); // طباعة البيانات كاملة من API
-        this.tableData = response.data.data || []; // تحديث tableData بالبيانات الجديدة
-        console.log("Fetched Data:", this.tableData); // تحقق من البيانات
+        //   console.log("Full Response Data:", response.data); // طباعة البيانات كاملة من API
+        this.tableData = response.data || []; // تحديث tableData بالبيانات الجديدة
+        //   console.log("Fetched Data:", this.tableData); // تحقق من البيانات
       } catch (error) {
         console.error("Error fetching data:", error); // التعامل مع الأخطاء
       }

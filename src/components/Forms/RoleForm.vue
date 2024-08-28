@@ -9,7 +9,7 @@
           <v-row>
             <v-col cols="12" sm="6" md="6">
               <Switcher
-                label="الإحصائيات"
+                label="الأحصائيات"
                 attr="statistical"
                 :model="form.statistical"
                 @switcher="
@@ -34,10 +34,9 @@
                 "
               ></Switcher>
             </v-col>
-
             <v-col cols="12" sm="6" md="6">
               <Switcher
-                label="العقارات"
+                label=" العقارات"
                 attr="estates"
                 :model="form.estates"
                 @switcher="
@@ -48,7 +47,6 @@
                 "
               ></Switcher>
             </v-col>
-
             <v-col cols="12" sm="6" md="6">
               <Switcher
                 label="الطلبات العقارية"
@@ -65,7 +63,7 @@
 
             <v-col cols="12" sm="6" md="6">
               <Switcher
-                label="التقييمات"
+                label="التفيمات"
                 attr="ratings"
                 :model="form.ratings"
                 @switcher="
@@ -76,10 +74,9 @@
                 "
               ></Switcher>
             </v-col>
-
             <v-col cols="12" sm="6" md="6">
               <Switcher
-                label="إشعارات المكتب"
+                label="أشعارات المكتب"
                 attr="office_notifications"
                 :model="form.office_notifications"
                 @switcher="
@@ -90,10 +87,9 @@
                 "
               ></Switcher>
             </v-col>
-
             <v-col cols="12" sm="6" md="6">
               <Switcher
-                label="إشعارات المستخدم"
+                label="أشعارات المستخدم"
                 attr="costumers_notifications"
                 :model="form.costumers_notifications"
                 @switcher="
@@ -104,7 +100,6 @@
                 "
               ></Switcher>
             </v-col>
-
             <v-col cols="12" sm="6" md="6">
               <Switcher
                 label="ثوابت النظام"
@@ -118,7 +113,6 @@
                 "
               ></Switcher>
             </v-col>
-
             <v-col cols="12" sm="6" md="6">
               <Switcher
                 label="العمليات"
@@ -132,7 +126,6 @@
                 "
               ></Switcher>
             </v-col>
-
             <v-col cols="12" sm="6" md="6">
               <Switcher
                 label="المستخدمين"
@@ -146,7 +139,6 @@
                 "
               ></Switcher>
             </v-col>
-
             <v-col cols="12" sm="6" md="6">
               <Switcher
                 label="الموظفين"
@@ -165,14 +157,13 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
+        <!-- <v-btn
+     color="blue darken-1"
+     text>
+     Cancel
+    </v-btn> -->
         <div>
-          <v-btn color="blue darken-1" @click="toggleStatus" :disabled="!id">
-            {{ form.active ? "تعطيل" : "تفعيل" }}
-          </v-btn>
-          <v-btn color="red darken-1" @click="deleteRole" :disabled="!id">
-            حذف
-          </v-btn>
-          <v-btn color="blue darken-1" type="submit"> حفظ </v-btn>
+          <Button color="blue darken-1" type="submit" label="حفظ"> </Button>
         </div>
       </v-card-actions>
     </v-card>
@@ -181,22 +172,30 @@
 
 <script>
 import Switcher from "../Form Components/Switcher";
-import axios from "axios";
-import { mapGetters } from "vuex";
-
+import { validationMixin } from "vuelidate";
+import {
+  required,
+  maxLength,
+  estate_ordersLength,
+  email,
+  sameAs,
+} from "vuelidate/lib/validators";
+import { mapGetters, mapActions } from "vuex";
 export default {
   components: { Switcher },
+  mixins: [validationMixin],
   props: {
     api: Object,
     isNew: Boolean,
     id: {
-      type: [String, Number],
       default: null,
     },
     newItemLabel: {
-      type: String,
       default: "عنصر",
     },
+  },
+  data() {
+    return {};
   },
   computed: {
     ...mapGetters(["getForm"]),
@@ -204,57 +203,34 @@ export default {
       return this.getForm;
     },
     formTitle() {
-      return (this.isNew ? "إنشاء" : "تعديل") + " " + this.newItemLabel;
+      return (this.isNew ? " إنشاء " : " تعديل ") + this.newItemLabel;
     },
+  },
+  watch: {
+    model() {},
   },
   methods: {
-    async save() {
-      let formData = new FormData();
+    save() {
+      //  this.$v.form.$touch()
+      //  if (!this.$v.form.$invalid) {
+      let formdata = new FormData();
       for (let f in this.form) {
-        formData.append(f, this.form[f]);
+        formdata.append(f, this.form[f]);
       }
-      try {
-        if (this.isNew) {
-          await axios.post(this.api.create, formData);
-        } else {
-          formData.append("_method", "PUT");
-          formData.append("role_id", this.id);
-          await axios.post(this.api.edit, formData);
-        }
-        this.$emit("dialogForm", false);
-        this.$emit("refreshData");
-      } catch (error) {
-        console.error("Error saving role:", error);
+      if (!this.isNew) {
+        formdata.append("_method", "PUT");
+        formdata.append("role_id", this.id);
       }
+      this.$store.dispatch("sendForm", {
+        api: this.api,
+        form: formdata,
+        isNew: this.isNew,
+      });
+      this.$emit("dialogForm", false);
+      //  } else {
+      //   this.$toast.error("أكمل الحقول المطلوبة");
+      //  }
     },
-    async toggleStatus() {
-      const status = this.form.active ? "deactivate" : "activate";
-      try {
-        await axios.post(`${this.api[status]}/${this.id}`);
-        this.form.active = !this.form.active;
-      } catch (error) {
-        console.error(`Error ${status} role:`, error);
-      }
-    },
-    async deleteRole() {
-      try {
-        await axios.delete(`${this.api.delete}/${this.id}`);
-        this.$emit("dialogForm", false);
-        this.$emit("refreshData");
-      } catch (error) {
-        console.error("Error deleting role:", error);
-      }
-    },
-  },
-  async mounted() {
-    if (!this.isNew) {
-      try {
-        const response = await axios.get(`${this.api.edit}/${this.id}`);
-        this.$store.dispatch("setForm", response.data);
-      } catch (error) {
-        console.error("Error fetching role details:", error);
-      }
-    }
   },
 };
 </script>

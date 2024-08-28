@@ -8,31 +8,11 @@
           :filter="filter"
           :title="title"
           :api="api"
-          :edit="edit"
           :del="del"
           :headers="headers"
           :items="items"
           @openForm="setForm"
         >
-          <!-- تخصيص سويتش التفعيل/إلغاء التفعيل لكل عنصر -->
-          <template v-slot:item.is_active="{ item }">
-            <!-- تأكد من استخدام is_active هنا -->
-            <v-switch
-              v-model="item.is_active"
-              @change="toggleActivation(item)"
-              :label="item.is_active ? 'مفعل' : 'معطل'"
-            ></v-switch>
-          </template>
-
-          <!-- تخصيص العمليات لكل عنصر -->
-          <template v-slot:item.actions="{ item }">
-            <v-btn icon @click="editItem(item)">
-              <v-icon>mdi-pencil</v-icon>
-            </v-btn>
-            <v-btn icon @click="deleteItem(item.id)">
-              <v-icon color="red">mdi-delete</v-icon>
-            </v-btn>
-          </template>
         </Table>
 
         <!-- Form -->
@@ -41,6 +21,7 @@
             newItemLabel="مجال السعر"
             :isNew="isNew"
             :api="api"
+            :edit="edit"
             @dialogForm="dialog_form = false"
           ></PriceDomainForm>
         </v-dialog>
@@ -59,16 +40,14 @@ export default {
     return {
       isNew: true,
       dialog_form: false,
-      edit: true,
+      edit: {},
       del: true,
-      items: [], // قائمة العناصر
+      items: [],
       api: {
         getAll: "priceDomains",
         create: "newPriceDomain",
-        update: "updatePriceDomain",
         delete: "deletePriceDomain",
-        toggleActivation: "togglePriceDomainActivation",
-        changeOrder: "changePriceDomainOrder",
+        edit: "updatePriceDomain",
       },
       filter: "price-domains",
       title: "مجالات الأسعار",
@@ -76,12 +55,6 @@ export default {
         { text: "#", align: "start", sortable: false, value: "id" },
         { text: "الحد الأدنى", align: "start", sortable: false, value: "min" },
         { text: "الحد الأعلى", align: "start", sortable: false, value: "max" },
-        {
-          text: "التفعيل",
-          align: "start",
-          sortable: false,
-          value: "is_active",
-        }, // القيمة هنا يجب أن تكون is_active
         { text: "العمليات", value: "actions", sortable: false },
       ],
     };
@@ -96,9 +69,11 @@ export default {
       this.$store.dispatch("initForm", form);
       if (val != null) {
         this.isNew = false;
+        this.edit = val;
         this.$store.dispatch("setForm", val);
       } else {
         this.isNew = true;
+        this.edit = null;
       }
       this.dialog_form = true;
     },
@@ -106,7 +81,7 @@ export default {
     async fetchItems() {
       try {
         const response = await axios.get(this.api.getAll);
-        this.items = response.data; // تخزين البيانات في المصفوفة
+        this.items = response.data;
       } catch (error) {
         console.error("Error fetching items:", error);
       }
@@ -115,30 +90,18 @@ export default {
     async deleteItem(itemId) {
       try {
         await axios.delete(`${this.api.delete}/${itemId}`);
-        this.fetchItems(); // إعادة جلب البيانات بعد الحذف
+        this.fetchItems();
       } catch (error) {
         console.error("Error deleting item:", error);
       }
     },
-
-    async toggleActivation(item) {
-      try {
-        await axios.post(`${this.api.toggleActivation}/${item.id}`, {
-          is_active: item.is_active,
-        });
-        this.fetchItems(); // إعادة جلب البيانات بعد التفعيل/التعطيل
-      } catch (error) {
-        console.error("Error toggling activation:", error);
-      }
-    },
-
     editItem(item) {
       this.setForm(item);
     },
   },
 
   mounted() {
-    this.fetchItems(); // جلب البيانات عند تحميل المكون
+    this.fetchItems();
   },
 };
 </script>

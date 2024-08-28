@@ -176,19 +176,24 @@ export default {
         for (let f in this.form) {
           formdata.append(f, this.form[f]);
         }
+
+        // إذا كان تعديلًا، نضيف `_method: PUT` إلى formdata
         if (!this.isNew) {
           formdata.append("_method", "PUT");
         }
+
         this.$store.dispatch("sendForm", {
           api: this.api,
           form: formdata,
           isNew: this.isNew,
         });
-        this.$emit("dialogForm", false);
+
+        this.$emit("dialogForm", false); // إغلاق النموذج بعد الحفظ
       } else {
         this.$toast.error("أكمل الحقول المطلوبة");
       }
     },
+
     updateForm(val) {
       form.parent_id = val.value;
       $v.form.parent_id.$touch();

@@ -13,7 +13,6 @@
           :headers="headers"
           @openForm="setForm"
         >
-          <!-- إدراج السويتش في العمود المناسب -->
           <template v-slot:item.is_active="{ item }">
             <v-switch
               v-model="item.is_active"
@@ -21,7 +20,7 @@
               :label="item.is_active ? 'مفعل' : 'معطل'"
             ></v-switch>
           </template>
-          <!-- عرض الأيقونات للتعديل والحذف -->
+
           <template v-slot:item.actions="{ item }">
             <v-icon small @click.stop="setForm(item)">mdi-pencil</v-icon>
             <v-icon small @click.stop="deleteItem(item.id)">mdi-delete</v-icon>
@@ -128,25 +127,23 @@ export default {
         await axios.post(`${this.api.toggleActivation}/${item.id}`, {
           is_active: item.is_active,
         });
-        // يمكنك إعادة تحميل البيانات إذا لزم الأمر
       } catch (error) {
         console.error("Error toggling activation:", error);
       }
     },
     async deleteItem(itemId) {
       try {
-        // بناء عنوان URL بشكل صحيح
         const url = `${this.api.delete}/${itemId}`;
-        console.log("Deleting item at URL:", url); // تحقق من عنوان URL
+        //  console.log("Deleting item at URL:", url);
         await axios.delete(url);
-        this.fetchEstateTypes(); // إعادة تحميل البيانات بعد الحذف
+        this.fetchEstateTypes();
       } catch (error) {
         console.error("Error deleting item:", error);
       }
     },
   },
   mounted() {
-    this.fetchEstateTypes(); // تحميل البيانات عند تحميل الصفحة
+    this.fetchEstateTypes();
   },
 };
 </script>

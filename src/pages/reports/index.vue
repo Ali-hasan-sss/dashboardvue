@@ -2,8 +2,8 @@
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
-        <!-- زر "تصدير إلى Excel" كمكون فرعي -->
-        <ExportToExcelButton class="excel-btn" :tableData="tableData" />
+        <!-- تم تمرير dataToExport بدلًا من tableData -->
+        <ExportToExcelButton class="excel-btn" :tableData="dataToExport" />
 
         <!-- Tabs -->
         <v-tabs-items class="mt-5" v-model="tab">
@@ -104,7 +104,8 @@ export default {
           sortable: false,
         },
       ],
-      tableData: [], // البيانات التي سيتم تصديرها إلى Excel
+      tableData: [],
+      dataToExport: [],
     };
   },
 
@@ -138,25 +139,31 @@ export default {
         }
       }
     },
+    getApiUrl() {
+      return this.pending_api_packets.getAll;
+    },
 
     async fetchData() {
       try {
         const response = await axios.get(this.getApiUrl());
-        console.log("Fetched Data:", response.data); // تحقق من البيانات القادمة من الـ API
-        this.tableData = response.data.data || []; // تحديث tableData
-        console.log("Updated tableData:", this.tableData); // تحقق من أن tableData يتم تحديثه بشكل صحيح
+        //  console.log("Fetched Data:", response.data);
+        this.tableData = response.data.data || [];
+
+        this.dataToExport = this.tableData.map((item) => ({
+          user: item.user?.first_name || "N/A",
+          report_type: item.report_type?.name_ar || "N/A",
+          estate: item.estate?.office?.name || "N/A",
+        }));
       } catch (error) {
         console.error("Error fetching data:", error);
+        this.tableData = [];
+        this.dataToExport = [];
       }
-    },
-
-    getApiUrl() {
-      return this.pending_api_packets.getAll; // التأكد من أن API URL يتم استرجاعه بشكل صحيح
     },
   },
 
   mounted() {
-    this.fetchData(); // جلب البيانات عند تحميل الصفحة
+    this.fetchData();
   },
 };
 </script>

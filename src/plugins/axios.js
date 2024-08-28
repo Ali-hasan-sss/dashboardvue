@@ -14,8 +14,8 @@ const local_baseURL = "http://localhost:8000/api/";
 /********************************************************************
  * Dev Server Credentials
  ********************************************************************/
-const dev_img_baseURL = "https://api-dev.swesshome.com/storage/";
-const dev_baseURL = "https://api-dev.swesshome.com/api/";
+const dev_img_baseURL = "https://swess.store/storage/";
+const dev_baseURL = "https://swess.store/api/";
 
 /********************************************************************
  * Live Server Credentials

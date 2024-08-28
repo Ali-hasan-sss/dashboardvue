@@ -2,13 +2,11 @@
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
-        <!-- زر "تصدير إلى Excel" كمكون فرعي -->
         <ExportToExcelButton class="excel-btn" :tableData="tableData" />
-
         <!-- Tabs -->
-        <v-tabs v-model="tab" align-with-title @change="fetchData">
+        <v-tabs v-model="tab" align-with-title>
           <v-tabs-slider color="yellow"></v-tabs-slider>
-          <v-tab v-for="(item, i) in items" :key="i">{{ item.country }}</v-tab>
+          <v-tab v-for="(item, i) in items" :key="i">{{ item.country }} </v-tab>
         </v-tabs>
         <v-tabs-items class="mt-5" v-model="tab">
           <v-tab-item v-for="(item, i) in items" :key="i">
@@ -19,7 +17,7 @@
               :filter="filter"
               :route_name="route_name"
               :title="item.country"
-              :api="item.api"
+              :api="getApiForForm"
               :create="create"
               :showOffice="showOffice"
               :edit="edit"
@@ -28,9 +26,6 @@
               :show="show"
               :headers="headers"
               @openForm="setForm"
-              @update:tableData="tableData = $event"
-              @deleteItem="deleteItem"
-              @toggleActive="toggleActive"
             ></Table>
           </v-tab-item>
         </v-tabs-items>
@@ -38,13 +33,13 @@
         <v-dialog v-model="dialog_form" max-width="500px">
           <LocationForm
             v-if="dialog_form"
-            newItemLabel="تعديل المنطقة"
+            newItemLabel="تعديل المنطقة "
             :isNew="isNew"
             :api="getApiForForm"
             :id="item_id"
             @dialogForm="dialog_form = false"
-          />
-        </v-dialog>
+          ></LocationForm
+        ></v-dialog>
       </v-col>
     </v-row>
   </v-container>
@@ -53,12 +48,10 @@
 <script>
 import LocationForm from "@/components/Forms/LocationForm.vue";
 import ExportToExcelButton from "@/components/ExportToExcelButton.vue";
-import axios from "axios";
 
 export default {
   components: {
     LocationForm,
-    ExportToExcelButton,
   },
   data() {
     return {
@@ -68,9 +61,10 @@ export default {
       isNew: true,
       create: true,
       edit: true,
-      del: true, // تفعيل خاصية الحذف
+      del: false,
       show: false,
-      state: true, // تفعيل خاصية التفعيل/إلغاء التفعيل
+      state: false,
+      tableData: [],
       items: [
         {
           country: "دمشق",
@@ -79,8 +73,6 @@ export default {
             getAll: "locationsByParenId/1",
             edit: "location/editLocation",
             create: "location/newLocation",
-            delete: "location/deleteLocation", // نقطة النهاية لحذف المنطقة
-            toggle: "location/toggleActive", // نقطة النهاية لتفعيل/إلغاء تفعيل المنطقة
           },
         },
         {
@@ -90,8 +82,87 @@ export default {
             getAll: "locationsByParenId/2",
             edit: "location/editLocation",
             create: "location/newLocation",
-            delete: "location/deleteLocation", // نقطة النهاية لحذف المنطقة
-            toggle: "location/toggleActive", // نقطة النهاية لتفعيل/إلغاء تفعيل المنطقة
+          },
+        },
+        {
+          country: "حمص",
+          tab: "2",
+          api: {
+            getAll: "locationsByParenId/3",
+            edit: "location/editLocation",
+            create: "location/newLocation",
+          },
+        },
+        {
+          country: "درعا",
+          tab: "3",
+          api: {
+            getAll: "locationsByParenId/4",
+            edit: "location/editLocation",
+            create: "location/newLocation",
+          },
+        },
+        {
+          country: "السويداء ",
+          tab: "4",
+          api: {
+            getAll: "locationsByParenId/5",
+            edit: "location/editLocation",
+            create: "location/newLocation",
+          },
+        },
+        {
+          country: "اللاذقية",
+          tab: "5",
+          api: {
+            getAll: "locationsByParenId/6",
+            edit: "location/editLocation",
+            create: "location/newLocation",
+          },
+        },
+        {
+          country: "طرطوس",
+          tab: "6",
+          api: {
+            getAll: "locationsByParenId/7",
+            edit: "location/editLocation",
+            create: "location/newLocation",
+          },
+        },
+        {
+          country: "حلب",
+          tab: "7",
+          api: {
+            getAll: "locationsByParenId/8",
+            edit: "location/editLocation",
+            create: "location/newLocation",
+          },
+        },
+        {
+          country: "حماة",
+          tab: "8",
+          api: {
+            getAll: "locationsByParenId/9",
+            edit: "location/editLocation",
+            create: "location/newLocation",
+          },
+        },
+        {
+          country: "دير الزور",
+          tab: "9",
+          api: {
+            getAll: "locationsByParenId/10",
+            edit: "location/editLocation",
+            create: "location/newLocation",
+          },
+        },
+        {
+          country: "القنيطرة",
+          tab: "10",
+          api: {
+            getAll: "locationsByParenId/11",
+            edit: "location/editLocation",
+            create: "location/newLocation",
           },
         },
       ],
@@ -112,44 +183,38 @@ export default {
           value: "name",
         },
         {
-          text: "الحالة",
-          value: "active", // عمود لسويتش التفعيل
-          sortable: false,
-        },
-        {
           text: "العمليات",
           value: "actions",
           sortable: false,
         },
       ],
-      tableData: [], // البيانات التي سيتم تصديرها إلى Excel
     };
   },
+  components: { ExportToExcelButton },
   computed: {
     getApiForForm() {
-      // تحديد API بناءً على حالة النموذج
-      return this.isNew
-        ? this.items[this.tab].api.create
-        : this.items[this.tab].api.edit;
-    },
-  },
-  watch: {
-    tab() {
-      this.fetchData();
+      return this.items[this.tab].api;
     },
   },
   methods: {
-    async fetchData() {
-      try {
-        const response = await axios.get(this.items[this.tab].api.getAll);
-        this.pagination = response.data.pagination;
-        this.tableData = response.data.data || [];
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
+    methods: {
+      async fetchData() {
+        try {
+          const response = await axios.get(this.getApiForForm.getAll);
+          console.log("API Response:", response);
+          if (response.data && response.data.data) {
+            this.tableData = response.data.data;
+          } else {
+            this.tableData = [];
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          this.tableData = [];
+        }
+      },
+      // ...
     },
     setForm(val) {
-      // تهيئة النموذج بالقيم الافتراضية
       let form = {
         location_id: null,
         name: null,
@@ -157,10 +222,13 @@ export default {
         longitude: null,
         latitude: null,
       };
+      // initialize form
       this.$store.dispatch("initForm", form);
 
+      // edit
       if (val != null) {
         this.isNew = false;
+        this.$store.dispatch("initForm", form);
         this.$store.dispatch("setForm", {
           location_id: val.id,
           name: val.name,
@@ -168,33 +236,21 @@ export default {
           longitude: val.longitude,
           latitude: val.latitude,
         });
+        this.dialog_form = true;
       } else {
         this.isNew = true;
-      }
-      this.dialog_form = true;
-    },
-    async deleteItem(id) {
-      try {
-        await axios.delete(`${this.items[this.tab].api.delete}/${id}`);
-        this.fetchData(); // تحديث البيانات بعد الحذف
-      } catch (error) {
-        console.error("Error deleting item:", error);
-      }
-    },
-    async toggleActive(item) {
-      try {
-        await axios.post(this.items[this.tab].api.toggle, {
-          id: item.id,
-          active: !item.active,
-        });
-        this.fetchData(); // تحديث البيانات بعد تغيير الحالة
-      } catch (error) {
-        console.error("Error toggling item active state:", error);
+        this.dialog_form = true;
       }
     },
   },
-  created() {
+  watch: {
+    tab() {
+      this.fetchData(); // Fetch data when the tab changes
+    },
+  },
+  mounted() {
     this.fetchData();
+    //   this.$store.dispatch('initForm', this.form)
   },
 };
 </script>

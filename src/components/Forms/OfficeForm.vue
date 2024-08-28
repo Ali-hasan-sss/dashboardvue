@@ -11,8 +11,15 @@
               <div color="grey">
                 <img
                   width="150"
-                  :src="form.newLogo ? form.newLogo : `${img_baseUrl}${form.logo}`"
-                  style="height: 80px; min-width: 80px; width: 80px; border-radius: 50%;"
+                  :src="
+                    form.newLogo ? form.newLogo : `${img_baseUrl}${form.logo}`
+                  "
+                  style="
+                    height: 80px;
+                    min-width: 80px;
+                    width: 80px;
+                    border-radius: 50%;
+                  "
                 />
               </div>
             </v-col>
@@ -23,77 +30,80 @@
                 prepend-icon="mdi-camera"
                 label="شعار العقار"
                 @change="selectImage"
-              >
-              </v-file-input>
+              />
             </v-col>
             <v-col cols="12">
-              <Input
+              <v-text-field
                 label="الاسم"
                 type="text"
-                :model="form.name"
-                :errorMessages="nameErrors"
-                @changeValue="(val) => { form.name = val; $v.form.name.$touch(); }"
-              ></Input>
+                v-model="form.name"
+                :error-messages="nameErrors"
+                @input="updateField('name', $event)"
+              />
             </v-col>
             <v-col cols="12">
-              <Input
+              <v-text-field
                 label="الهاتف"
                 type="text"
-                :model="form.telephone"
-                @changeValue="(val) => { form.telephone = val; }"
-              ></Input>
+                v-model="form.telephone"
+                @input="updateField('telephone', $event)"
+              />
+              <v-col cols="12">
+                <v-text-field
+                  label="رقم الموبايل"
+                  type="text"
+                  v-model="form.mobile"
+                  :error-messages="mobileErrors"
+                  @input="updateField('mobile', $event)"
+                />
+              </v-col>
             </v-col>
             <v-col cols="12">
-              <Input
+              <v-text-field
                 label="longitude"
                 type="number"
-                :model="form.longitude"
-                :errorMessages="longitudeErrors"
-                @changeValue="(val) => { form.longitude = val; $v.form.longitude.$touch(); }"
-              ></Input>
+                v-model="form.longitude"
+                :error-messages="longitudeErrors"
+                @input="updateField('longitude', $event)"
+              />
             </v-col>
             <v-col cols="12">
-              <Input
+              <v-text-field
                 label="latitude"
                 type="text"
-                :model="form.latitude"
-                :errorMessages="latitudeErrors"
-                @changeValue="(val) => { form.latitude = val; $v.form.latitude.$touch(); }"
-              ></Input>
+                v-model="form.latitude"
+                :error-messages="latitudeErrors"
+                @input="updateField('latitude', $event)"
+              />
             </v-col>
             <v-col cols="12">
-              <FormSelect
+              <v-select
                 :items="Locations"
-                :model="form.location_id"
-                attr="location_id"
-                :errorMessages="location_idErrors"
+                v-model="form.location_id"
+                :error-messages="location_idErrors"
                 label="ضمن المنطقة"
-                @select="(val) => { form.location_id = val.value; $v.form.location_id.$touch(); }"
-              >
-              </FormSelect>
+                @change="updateField('location_id', $event)"
+              />
             </v-col>
-            <!-- Add password field here -->
             <v-col cols="12">
-              <Input
+              <v-text-field
                 label="كلمة المرور الجديدة"
                 type="password"
-                :model="form.password"
-                @changeValue="(val) => { form.password = val; }"
-              ></Input>
+                v-model="form.password"
+                :error-messages="passwordErrors"
+                @input="updateField('password', $event)"
+              />
             </v-col>
           </v-row>
         </v-container>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <div>
-          <Button color="blue darken-1" type="submit" label="حفظ"> </Button>
-        </div>
+        <v-btn color="blue darken-1" type="submit">حفظ</v-btn>
       </v-card-actions>
     </v-card>
   </v-form>
 </template>
-
 
 <script>
 import { img_baseUrl } from "@/plugins/axios";
@@ -107,25 +117,27 @@ export default {
     api: Object,
     isNew: Boolean,
   },
-  validations: {
-    form: {
-      name: { required },
-      longitude: { required },
-      latitude: { required },
-      location_id: { required },
-      password: {}, // Add validation for password if necessary
-    },
+  validations() {
+    return {
+      form: {
+        name: { required },
+        longitude: { required },
+        latitude: { required },
+        location_id: { required },
+        mobile: { required },
+        password: {}, // Add validation for password if necessary
+      },
+    };
   },
   data() {
     return {
       img_baseUrl,
-      name_error_msgs: {
-        maxlength: "يجب أن يتألف الأسم من 20 أحرف كحد أقصى.",
-        required: "هذا الحقل مطلوب.",
-      },
-      required_error_msgs: {
-        required: "هذا الحقل مطلوب.",
-      },
+      nameErrors: [],
+      longitudeErrors: [],
+      latitudeErrors: [],
+      location_idErrors: [],
+      mobileErrors: [],
+      passwordErrors: [],
     };
   },
   computed: {
@@ -158,20 +170,29 @@ export default {
         if (!this.isNew) {
           formdata.append("_method", "PUT");
         }
+        //  console.log("Form Data to be sent:", this.form);
+        //  console.log("FormData object:", [...formdata.entries()]);
+
         this.$store
           .dispatch("sendForm", {
             api: this.api,
             form: formdata,
             isNew: this.isNew,
           })
-          .then((response) => {
+          .then(() => {
             this.$emit("dialogForm", false);
           })
-          .catch((error) => {
+          .catch(() => {
             this.$toast.error("حدث خطأ أثناء حفظ المكتب العقاري.");
           });
       } else {
         this.$toast.error("أكمل الحقول المطلوبة");
+      }
+    },
+    updateField(field, value) {
+      this.form[field] = value;
+      if (this.$v.form[field]) {
+        this.$v.form[field].$touch();
       }
     },
   },

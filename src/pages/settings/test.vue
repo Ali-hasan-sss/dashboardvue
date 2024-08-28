@@ -126,11 +126,9 @@ export default {
       });
     },
     handleImageReorder() {
-      // معالجة ترتيب الصور بعد السحب والإفلات
       console.log("تم إعادة ترتيب الصور", this.images);
     },
     save() {
-      // عملية حفظ البيانات مع الصور
       const formData = new FormData();
       for (let field in this.form) {
         formData.append(field, this.form[field]);

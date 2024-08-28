@@ -38,6 +38,7 @@ export default {
       },
       chart: {
         width: 20,
+        type: "pie",
       },
       colors: [config.light.primary, config.light.secondary],
       labels: ["بيع", "أجار"],
@@ -70,7 +71,11 @@ export default {
       chart: {
         width: 20,
       },
-      colors: [config.light.primary,config.light.success,config.light.warning,],
+      colors: [
+        config.light.primary,
+        config.light.success,
+        config.light.warning,
+      ],
       labels: ["جيد", "متوسط", "سيئ"],
       legend: {},
     },

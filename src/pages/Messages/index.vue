@@ -150,7 +150,7 @@ export default {
     async fetchData() {
       try {
         const response = await axios.get(this.getApiUrl());
-        console.log("Fetched Data:", response.data);
+        // console.log("Fetched Data:", response.data);
         this.tableData = response.data.data || []; // update tableData
         // console.log("Updated tableData:", this.tableData); //comferm update tableData for export to excel
       } catch (error) {

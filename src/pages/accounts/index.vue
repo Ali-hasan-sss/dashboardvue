@@ -4,12 +4,12 @@
       <v-col>
         <!-- List -->
         <Table
-          newItemLabel="حساب"
           :filter="filter"
           :title="title"
           :api="api"
           :edit="edit"
           :headers="headers"
+          :items="tableData"
           @openForm="setForm"
           @activate="activateAccount"
           @deactivate="deactivateAccount"
@@ -37,7 +37,7 @@ export default {
   data() {
     return {
       isNew: true,
-      edit: true, // جعل التعديل ممكنًا
+      edit: true,
       dialog_form: false,
       api: {
         getAll: "users",
@@ -52,32 +52,35 @@ export default {
         {
           text: "#",
           align: "start",
-          sortable: false,
+          sortable: true,
           value: "id",
         },
         {
           text: "الاسم الأول",
           align: "start",
-          sortable: false,
+          sortable: true,
           value: "first_name",
         },
         {
           text: "الاسم الأخير",
           align: "start",
-          sortable: false,
+          sortable: true,
           value: "last_name",
         },
         {
           text: "الايميل أو الهاتف",
           value: "authentication",
+          sortable: true,
         },
         {
           text: "صلاحية المستخدم",
           value: "role",
+          sortable: true,
         },
         {
           text: "الحالة",
           value: "status",
+          sortable: true,
         },
         {
           text: "العمليات",
@@ -85,6 +88,7 @@ export default {
           sortable: false,
         },
       ],
+      tableData: [],
     };
   },
   components: { AccountForm },
@@ -110,25 +114,25 @@ export default {
     async activateAccount(id) {
       try {
         await axios.post(`${this.api.activate}/${id}`);
-        this.fetchData(); // تحديث البيانات بعد التفعيل
+        this.fetchData();
       } catch (error) {
-        console.error("Error activating account:", error);
+        console.error("Error activating account:", error.message || error);
       }
     },
     async deactivateAccount(id) {
       try {
         await axios.post(`${this.api.deactivate}/${id}`);
-        this.fetchData(); // تحديث البيانات بعد التعطيل
+        this.fetchData();
       } catch (error) {
-        console.error("Error deactivating account:", error);
+        console.error("Error deactivating account:", error.message || error);
       }
     },
     async deleteAccount(id) {
       try {
         await axios.delete(`${this.api.delete}/${id}`);
-        this.fetchData(); // تحديث البيانات بعد الحذف
+        this.fetchData();
       } catch (error) {
-        console.error("Error deleting account:", error);
+        console.error("Error deleting account:", error.message || error);
       }
     },
     async fetchData() {
@@ -136,12 +140,12 @@ export default {
         const response = await axios.get(this.api.getAll);
         this.tableData = response.data || [];
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching data:", error.message || error);
       }
     },
   },
   mounted() {
-    this.fetchData(); // جلب البيانات عند تحميل المكون
+    this.fetchData();
   },
 };
 </script>

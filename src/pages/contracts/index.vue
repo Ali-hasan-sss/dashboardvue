@@ -98,7 +98,7 @@ export default {
         offers_count: "",
         expire_period: "",
       };
-      console.log(val);
+      //  console.log(val);
       this.$store.dispatch("initForm", form);
       if (val != null) {
         this.isNew = false;
