@@ -2,9 +2,8 @@
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
-        <v-btn @click="setForm()" color="primary">إضافة نوع عقار</v-btn>
-        <v-btn @click="saveOrder" color="success" class="ml-2"
-          >حفظ الترتيب</v-btn
+        <v-btn @click="setForm()" color="primary" style="margin-bottom: 10px"
+          >إضافة نوع عقار</v-btn
         >
 
         <!-- قائمة الأنواع -->
@@ -147,13 +146,22 @@ export default {
       this.currentFormData = item ? { ...item } : {};
       this.dialog_form = true;
     },
+
     async handleSave(formData) {
+      console.log("البيانات المرسلة:", formData);
+      console.log("هل هو تعديل؟", !this.isNew);
+
       try {
         if (this.isNew) {
+          // إضافة جديدة
           await axios.post(this.api.create, formData);
-        } else {
+        } else if (formData.id) {
+          // تعديل
           await axios.put(`${this.api.update}/${formData.id}`, formData);
+        } else {
+          console.error("Missing estate type ID for update");
         }
+
         this.fetchEstateTypes();
         this.dialog_form = false;
       } catch (error) {
@@ -173,15 +181,6 @@ export default {
       } catch (error) {
         console.error("Error deleting item:", error);
         this.$toast.error("فشل في حذف العنصر");
-      }
-    },
-    async toggleActivation(item) {
-      try {
-        await axios.put(`${this.api.toggleActivation}/${item.id}`, {
-          is_active: item.is_active,
-        });
-      } catch (error) {
-        console.error("Error toggling activation:", error);
       }
     },
     async saveOrder() {
@@ -212,6 +211,7 @@ export default {
 
   mounted() {
     this.fetchEstateTypes();
+    console.log("API update URL:", this.api.update);
   },
 };
 </script>

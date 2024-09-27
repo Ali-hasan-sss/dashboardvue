@@ -15,8 +15,21 @@
           :del="del"
           :edit="edit"
           :headers="headers"
+          :items="tableData"
           @openForm="setForm"
-        ></Table>
+        >
+          <template v-slot:item.actions="{ item }">
+            <v-icon small @click="setForm(item)" color="primary"
+              >mdi-pencil</v-icon
+            >
+            <!-- تعديل -->
+            <v-icon small @click="deleteItem(item.id)" color="red"
+              >mdi-delete</v-icon
+            >
+            <!-- حذف -->
+          </template>
+        </Table>
+
         <!-- Form -->
         <v-dialog v-model="dialog_form" max-width="500px">
           <GeneralForm
@@ -53,7 +66,7 @@ export default {
       },
       create: true,
       del: true,
-      edit: false,
+      edit: true,
       filter: "offers",
       title: "العروض العقارية",
       fields: [
@@ -95,6 +108,7 @@ export default {
         size: null,
         price: null,
       };
+
       this.$store.dispatch("initForm", form);
 
       if (val) {
@@ -105,6 +119,7 @@ export default {
       }
       this.dialog_form = true;
     },
+
     async fetchData() {
       try {
         const response = await axios.get(this.api.getAll);
@@ -113,23 +128,48 @@ export default {
         console.error("Error fetching data:", error);
       }
     },
+
     async handleFormSave() {
       try {
+        const form = this.$store.getters.getForm;
+        if (!this.isNew && !form.id) {
+          throw new Error("معرف العرض غير موجود!");
+        }
+
         const apiEndpoint = this.isNew
           ? this.api.create
-          : `${this.api.create}/${this.$store.getters.getForm.id}`;
+          : `${this.api.create}/${form.id}`;
 
         if (this.isNew) {
-          await axios.post(apiEndpoint, this.$store.getters.getForm);
+          await axios.post(apiEndpoint, form);
         } else {
-          await axios.put(apiEndpoint, this.$store.getters.getForm);
+          await axios.put(apiEndpoint, form);
         }
 
         this.dialog_form = false;
-        this.fetchData(); // تحديث البيانات بعد إضافة العرض الجديد
+        this.fetchData();
       } catch (error) {
         console.error("Error saving form:", error);
       }
+    },
+    async deleteItem(id) {
+      try {
+        await axios.delete(`${this.api.delete}=${id}`);
+        this.fetchData();
+      } catch (error) {
+        console.error("Error deleting item:", error);
+      }
+    },
+  },
+  watch: {
+    fields(newFields) {
+      console.log("Received fields:", newFields);
+    },
+    isNew(newIsNew) {
+      console.log("Is new:", newIsNew);
+    },
+    api(newApi) {
+      console.log("API:", newApi);
     },
   },
 

@@ -2,7 +2,6 @@
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
-        <!-- تم تمرير dataToExport بدلًا من tableData -->
         <ExportToExcelButton class="excel-btn" :tableData="dataToExport" />
 
         <!-- Tabs -->
@@ -23,7 +22,13 @@
               :show="show"
               :headers="headers_panding"
               @openForm="setForm"
-            ></Table>
+            >
+              <template v-slot:item.user.first_name="{ item }">
+                <span @click="openUserDialog(item.user)" class="clickable">
+                  {{ item.user.first_name }}
+                </span>
+              </template>
+            </Table>
           </v-tab-item>
         </v-tabs-items>
 
@@ -109,12 +114,6 @@ export default {
     };
   },
 
-  computed: {
-    getApiForForm() {
-      return this.pending_api_packets;
-    },
-  },
-
   methods: {
     setForm(val) {
       let form = {
@@ -139,6 +138,10 @@ export default {
         }
       }
     },
+    openUserDialog(user) {
+      alert(`Details for user: ${user.first_name} ${user.last_name}`);
+      // Here you can open a dialog or redirect to a user details page
+    },
     getApiUrl() {
       return this.pending_api_packets.getAll;
     },
@@ -146,7 +149,7 @@ export default {
     async fetchData() {
       try {
         const response = await axios.get(this.getApiUrl());
-        //  console.log("Fetched Data:", response.data);
+        console.log("Fetched Data:", response.data);
         this.tableData = response.data.data || [];
 
         this.dataToExport = this.tableData.map((item) => ({
@@ -167,3 +170,11 @@ export default {
   },
 };
 </script>
+
+<style>
+.clickable {
+  cursor: pointer;
+  color: blue;
+  text-decoration: underline;
+}
+</style>

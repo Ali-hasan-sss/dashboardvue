@@ -1,29 +1,33 @@
 import axios from "axios";
-
 const state = () => ({
-  form: {
-    password: "",
-  },
+  form: {},
   item: {},
   loadingForm: true,
   loadingItem: true,
 });
-
 const actions = {
   async sendForm({ dispatch, commit }, info) {
     commit("SET_LOADING", true);
-    try {
-      await axios.post(
-        `${!info.isNew ? info.api.edit : info.api.create}`,
+    await axios
+      .post(
+        `${
+          !info.isNew
+            ? info.edit == "edit_state"
+              ? info.api.edit_state
+              : info.api.edit
+            : info.api.create
+        }`,
         info.form
-      );
-      dispatch("fetchTableData");
-      this._vm.$toast.success("تمت العملية بنجاح");
-    } catch (err) {
-      this._vm.$toast.error("فشلت العملية");
-    } finally {
-      commit("SET_LOADING", false);
-    }
+      )
+      .then((res) => {
+        // let resultData = res.data.data;
+        dispatch("fetchTableData", info);
+        this._vm.$toast.success("تمت العملية بنجاح");
+      })
+      .catch((err) => {
+        dispatch("fetchTableData", info);
+        this._vm.$toast.error("فشلت العملية");
+      });
   },
   async fetchForm({ commit }, api) {
     commit("SET_LOADING", true);
@@ -68,10 +72,18 @@ const actions = {
 };
 
 const getters = {
-  getForm: (state) => state.form,
-  getItem: (state) => state.item,
-  getLoadingForm: (state) => state.loadingForm,
-  getLoadingItem: (state) => state.loadingItem,
+  getForm: (state) => {
+    return state.form;
+  },
+  getItem: (state) => {
+    return state.item;
+  },
+  getLoadingForm: (state) => {
+    return state.loadingForm;
+  },
+  getLoadingItem: (state) => {
+    return state.loadingItem;
+  },
 };
 
 const mutations = {
@@ -79,17 +91,17 @@ const mutations = {
     state.tableData = payload;
   },
   SET_FORM(state, payload) {
-    Object.keys(state.form).forEach((key) => {
-      if (payload.hasOwnProperty(key)) {
-        state.form[key] = payload[key];
-      }
-    });
+    let temp_form = state.form;
+    let t;
+    for (t in temp_form) {
+      state.form[t] = payload[t];
+    }
   },
   SET_ITEM(state, payload) {
     state.item = payload;
   },
   SET_INIT_FORM(state, payload) {
-    state.form = { ...state.form, ...payload }; // تأكد من أن form يتم تهيئته بشكل صحيح
+    state.form = payload;
   },
   SET_LOADING(state, payload) {
     state.loadingForm = payload;

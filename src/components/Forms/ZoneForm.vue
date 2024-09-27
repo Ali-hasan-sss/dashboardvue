@@ -1,6 +1,5 @@
 <template>
   <v-form @submit.prevent="save">
-
     <v-card>
       <v-card-title>
         <span>{{ newItemLabel }}</span>
@@ -8,67 +7,130 @@
       <v-card-text>
         <v-container>
           <v-row>
-
-
             <v-col cols="12" sm="6" md="4">
-              <Input label="اسم المنطقة" type="text" :model="form.name" :errorMessages="nameErrors" 
-              @changeValue="(val) => {
-                form.name = val;
-                $v.form.name.$touch();
-              }
-                "></Input>
+              <Input
+                label="اسم المنطقة"
+                type="text"
+                :model="form.name"
+                :errorMessages="nameErrors"
+                @changeValue="
+                  (val) => {
+                    form.name = val;
+                    $v.form.name.$touch();
+                  }
+                "
+              ></Input>
             </v-col>
             <v-col cols="12" sm="6" md="4">
-              <Input label="الحالة" type="text" :placeholder="'0/1'" :model="form.status" :errorMessages="statusErrors"
-                @changeValue="(val) => {
-                  form.status = val;
-                  $v.form.status.$touch();
-                }
-                  "></Input>
+              <Input
+                label="الحالة"
+                type="text"
+                :placeholder="'0/1'"
+                :model="form.status"
+                :errorMessages="statusErrors"
+                @changeValue="
+                  (val) => {
+                    form.status = val;
+                    $v.form.status.$touch();
+                  }
+                "
+              ></Input>
             </v-col>
 
             <v-col cols="12" sm="100" md="15">
-                <gmap-map :center="center" :zoom="zoom" style="width: 100%; height: 400px;" @click="onMapClick">
-                  <gmap-polyline :path="form.markers" :options="{
-                    strokeColor:  form.color ? '#' + form.color : null, strokeWeight: 6
-                  }"></gmap-polyline>
-                  <gmap-marker v-for="(marker, index) in form.markers" :key="'marker-' + index"  :position="marker" :clickable="true"
-                      @click="onMapClick"></gmap-marker>
-                      <gmap-marker v-for="(markers, index) in form.allZonesMarkers" :key="'allZonesMarker-' + index">
-      <gmap-marker v-for="(position, positionIndex) in markers" :key="'position-' + positionIndex" :position="position"></gmap-marker>
-    </gmap-marker> 
-     <gmap-polyline v-for="(markers, index) in form.allZonesMarkers" :key="'polyline-' + index" :path="markers" :options="{ strokeColor: form.color ? '#' + form.color : null, strokeOpacity: 0.7, strokeWeight: 1.7 }"></gmap-polyline>
-                  </gmap-map>
-                </v-col>
+              <gmap-map
+                :center="center"
+                :zoom="zoom"
+                style="width: 100%; height: 400px"
+                @click="onMapClick"
+              >
+                <gmap-polyline
+                  :path="form.markers"
+                  :options="{
+                    strokeColor: form.color ? '#' + form.color : null,
+                    strokeWeight: 6,
+                  }"
+                ></gmap-polyline>
+                <gmap-marker
+                  v-for="(marker, index) in form.markers"
+                  :key="'marker-' + index"
+                  :position="marker"
+                  :clickable="true"
+                  @click="onMapClick"
+                ></gmap-marker>
+                <gmap-marker
+                  v-for="(markers, index) in form.allZonesMarkers"
+                  :key="'allZonesMarker-' + index"
+                >
+                  <gmap-marker
+                    v-for="(position, positionIndex) in markers"
+                    :key="'position-' + positionIndex"
+                    :position="position"
+                  ></gmap-marker>
+                </gmap-marker>
+                <gmap-polyline
+                  v-for="(markers, index) in form.allZonesMarkers"
+                  :key="'polyline-' + index"
+                  :path="markers"
+                  :options="{
+                    strokeColor: form.color ? '#' + form.color : null,
+                    strokeOpacity: 0.7,
+                    strokeWeight: 1.7,
+                  }"
+                ></gmap-polyline>
+              </gmap-map>
+            </v-col>
 
             <v-col cols="12" sm="6" md="4">
-              <Input label="الإحداثيات" type="text" :placeholder="'[[33.492..,36.241...]]'" :model="form.coordinates"
-                :value="form.coordinates" :errorMessages="coordinatesErrors" @changeValue="(val) => {
-                  form.coordinates = val;
-                  $v.form.coordinates.$touch();
-                }
-                  "></Input>
+              <Input
+                label="الإحداثيات"
+                type="text"
+                :placeholder="'[[33.492..,36.241...]]'"
+                :model="form.coordinates"
+                :value="form.coordinates"
+                :errorMessages="coordinatesErrors"
+                @changeValue="
+                  (val) => {
+                    form.coordinates = val;
+                    $v.form.coordinates.$touch();
+                  }
+                "
+              ></Input>
             </v-col>
             <v-col cols="12" sm="6" md="4">
-              <Input label="اللون" type="text" :placeholder="'ff0ff'" :model="form.color"
-                :errorMessages="colorErrors" @changeValue="(val) => {
-                  form.color = val;
-                  $v.form.color.$touch();
-                }
-                  "></Input>
+              <Input
+                label="اللون"
+                type="text"
+                :placeholder="'ff0ff'"
+                :model="form.color"
+                :errorMessages="colorErrors"
+                @changeValue="
+                  (val) => {
+                    form.color = val;
+                    $v.form.color.$touch();
+                  }
+                "
+              ></Input>
             </v-col>
 
             <v-col cols="12" sm="6" md="6">
               <div>
-                <v-select v-model="form.location_id" :items="locationOptions" item-text="location_full_name"
-                  item-value="location_id" label="اختر المنطقة المطلوبة" :errorMessages="location_idErrors" @select="(val) => {
-                    form.location_id = val.value;
-                    $v.form.location_id.$touch();
-                  }
-                    "></v-select>
+                <v-select
+                  v-model="form.location_id"
+                  :items="locationOptions"
+                  item-text="location_full_name"
+                  item-value="location_id"
+                  label="اختر المنطقة المطلوبة"
+                  :errorMessages="location_idErrors"
+                  @select="
+                    (val) => {
+                      form.location_id = val.value;
+                      $v.form.location_id.$touch();
+                    }
+                  "
+                ></v-select>
               </div>
             </v-col>
-
           </v-row>
         </v-container>
       </v-card-text>
@@ -79,31 +141,31 @@
     text>
     Cancel
    </v-btn> -->
-        <div style="margin-left: 10px; margin-bottom:9px">
-          <v-btn color="red darken-1" @click="clearCoordinates" style="color: white;">مسح الإحداثيات
+        <div style="margin-left: 10px; margin-bottom: 9px">
+          <v-btn
+            color="red darken-1"
+            @click="clearCoordinates"
+            style="color: white"
+            >مسح الإحداثيات
           </v-btn>
         </div>
         <div>
           <Button color="blue darken-1" type="submit" label="حفظ"> </Button>
         </div>
-
       </v-card-actions>
     </v-card>
-
   </v-form>
 </template>
 
 <script>
-
 import { validationMixin } from "vuelidate";
 import { required, maxLength, email } from "vuelidate/lib/validators";
 import { mapGetters, mapActions } from "vuex";
-
+import axios from "../../plugins/axios";
 export default {
-
   mixins: [validationMixin],
   props: {
-    api: String,
+    api: Object,
     isNew: Boolean,
     newItemLabel: String,
   },
@@ -186,15 +248,15 @@ export default {
       return this.isNew ? "عنصر جديد" : "تعديل العنصر";
     },
     locationOptions() {
-      return this.locations.map(locations => ({
+      return this.locations.map((locations) => ({
         location_id: locations.id,
-        location_full_name: locations.location_full_name
+        location_full_name: locations.location_full_name,
       }));
     },
 
     center() {
       if (this.form.markers.length === 0) {
-        return { lat: 33.510414, lng: 36.278336 };  // Default center when markers array is empty:Damascus
+        return { lat: 33.510414, lng: 36.278336 }; // Default center when markers array is empty:Damascus
       }
 
       const totalMarkers = this.form.markers.length;
@@ -210,12 +272,10 @@ export default {
     },
   },
   watch: {
-    model() { },
+    model() {},
   },
 
-
   methods: {
-
     ...mapActions(["fetchGovernorate"]),
     save() {
       if (!this.$v.form.$invalid) {
@@ -246,39 +306,44 @@ export default {
       // Add the coordinates to the array
       this.form.markers.push(clickedLatLng);
 
-      this.form.coordinates ='['+ this.form.markers.map(coord => {
-        const { lat, lng } = coord;
-        return `[${lat},${lng}]`;
-      }).join(',')+ ']';
+      this.form.coordinates =
+        "[" +
+        this.form.markers
+          .map((coord) => {
+            const { lat, lng } = coord;
+            return `[${lat},${lng}]`;
+          })
+          .join(",") +
+        "]";
     },
 
     clearCoordinates() {
       this.form.coordinates = null;
 
-      this.form.markers.forEach(marker => {
+      this.form.markers.forEach((marker) => {
         this.form.allZonesMarkers.forEach((allZonesCoordinates, index) => {
-          const innerArrayIndex = allZonesCoordinates.findIndex(allZonesMarker => {
-            return marker.lat === allZonesMarker.lat && marker.lng === allZonesMarker.lng;
-          });
+          const innerArrayIndex = allZonesCoordinates.findIndex(
+            (allZonesMarker) => {
+              return (
+                marker.lat === allZonesMarker.lat &&
+                marker.lng === allZonesMarker.lng
+              );
+            }
+          );
           if (innerArrayIndex !== -1) {
             this.form.allZonesMarkers[index].splice(innerArrayIndex, 1);
           }
         });
       });
       this.form.markers = [];
-
-    }
+    },
   },
 
   mounted() {
-
-    axios.get('allregions').then(response => {
-     const nestedObjects  = response.data.data;
-     this.locations = nestedObjects.flatMap(obj => obj.locations);
-    })
+    axios.get("allregions").then((response) => {
+      const nestedObjects = response.data.data;
+      this.locations = nestedObjects.flatMap((obj) => obj.locations);
+    });
   },
-
 };
-
-
 </script>

@@ -20,8 +20,7 @@
           <RoleForm
             v-if="dialog_form"
             newItemLabel="صلاحية"
-            :isNew="isNew"
-            :api="api"
+            :api="'https://swess.store/api/role/editRole'"
             :id="item_id"
             @dialogForm="dialog_form = false"
           ></RoleForm>
@@ -37,7 +36,6 @@ export default {
   data() {
     return {
       item_id: null,
-      isNew: true,
       dialog_form: false,
       create: false,
       edit: true,

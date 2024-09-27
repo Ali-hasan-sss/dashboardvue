@@ -34,14 +34,17 @@ import OwnershipTypes from "@/pages/system categories/ownership-types/index";
 
 import Typography from "@/pages/Typography/Typography";
 import Tables from "@/pages/Tables/Basic";
-import Notifications from "@/pages/notifications/index";
+import Notifications from "@/pages/notifications/index.vue";
+import Inbox from "@/pages/notifications/inbox.vue";
 import Icons from "@/pages/Icons/Icons";
 import Charts from "@/pages/Charts/Charts";
 import Maps from "@/pages/Maps/Google";
 import Error from "@/pages/Error/Error";
 import Login from "@/pages/Login/Login";
 import test from "@/pages/test/index";
-
+import app_menu from "./pages/app_settings/app_menu.vue";
+import contact from "./pages/app_settings/contact_info.vue";
+import editinfo from "./pages/app_settings/editinfo.vue";
 Vue.use(Router);
 
 const routes = [
@@ -161,6 +164,12 @@ const routes = [
         meta: { loginRequired: true },
       },
       {
+        path: "inbox",
+        name: "Inbox",
+        component: Inbox,
+        meta: { loginRequired: true },
+      },
+      {
         path: "settings",
         name: "Settings",
         component: Settings,
@@ -242,6 +251,21 @@ const routes = [
         path: "Messages",
         name: "Messages",
         component: Messages,
+      },
+      {
+        path: "app-menu",
+        name: "menu",
+        component: app_menu,
+      },
+      {
+        path: "Edit-Terms",
+        name: "edit",
+        component: editinfo,
+      },
+      {
+        path: "contact",
+        name: "contact",
+        component: contact,
       },
     ],
   },

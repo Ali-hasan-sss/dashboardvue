@@ -631,48 +631,55 @@ export default {
       if (this.form.hasOwnProperty("images")) {
         delete this.form["images"];
       }
+
       if (!this.$v.form.$invalid) {
         let formdata = new FormData();
         for (let f in this.form) {
           this.form[f] == null ? "" : formdata.append(f, this.form[f]);
         }
+
         if (!this.isNew) {
-          formdata.append("_method", "POST");
+          formdata.append("_method", "PUT"); // استخدم PUT أو PATCH للتعديل
           formdata.append("id", this.id);
         }
-        this.estate_edited_images_ids.length == 0
+
+        // Adding images to formdata
+        this.estate_edited_images_ids.length === 0
           ? formdata.append("estate_edited_images_ids[]", -1)
-          : this.estate_edited_images_ids.reverse().forEach(function (value) {
+          : this.estate_edited_images_ids.forEach(function (value) {
               formdata.append("estate_edited_images_ids[]", value);
             });
 
-        this.street_edited_images_ids.length == 0
+        this.street_edited_images_ids.length === 0
           ? formdata.append("street_edited_images_ids[]", -1)
-          : this.street_edited_images_ids.reverse().forEach(function (value) {
+          : this.street_edited_images_ids.forEach(function (value) {
               formdata.append("street_edited_images_ids[]", value);
             });
 
-        this.floor_edited_images_ids.length == 0
+        this.floor_edited_images_ids.length === 0
           ? formdata.append("floor_plan_edited_images_ids[]", -1)
-          : this.floor_edited_images_ids.reverse().forEach(function (value) {
+          : this.floor_edited_images_ids.forEach(function (value) {
               formdata.append("floor_plan_edited_images_ids[]", value);
             });
+
         this.all_images_files = this.estate_images_files
           .concat(this.street_images_files)
           .concat(this.floor_images_files);
 
-        this.all_images_files.length == 0
+        this.all_images_files.length === 0
           ? formdata.append("images[]", -1)
           : this.all_images_files.forEach(function (value) {
               formdata.append("images[]", value);
             });
-        //formdata.append("images", this.all_images_files);
+
+        // Dispatch the action to send the form data
         this.$store.dispatch("sendForm", {
           api: this.api,
           form: formdata,
-          isNew: this.isNew, // if create
-          edit: "edit", // edit type : normal edit or state edit
+          isNew: this.isNew, // if creating a new item
+          edit: !this.isNew ? "update" : null, // تحديد نوع التعديل إذا كان موجودًا
         });
+
         this.$emit("dialogForm", false);
       } else {
         this.$toast.error("أكمل الحقول المطلوبة");

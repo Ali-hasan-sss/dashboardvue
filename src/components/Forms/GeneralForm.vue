@@ -32,10 +32,10 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="blue darken-1" text> Cancel </v-btn>
-        <div>
-          <Button color="blue darken-1" type="submit" label="حفظ"> </Button>
-        </div>
+        <v-btn color="blue darken-1" text @click="$emit('dialogForm', false)"
+          >Cancel</v-btn
+        >
+        <v-btn color="blue darken-1" type="submit">حفظ</v-btn>
       </v-card-actions>
     </v-card>
   </v-form>
@@ -43,8 +43,9 @@
 
 <script>
 import { validationMixin } from "vuelidate";
-import { required, maxLength, email } from "vuelidate/lib/validators";
-import { mapGetters, mapActions } from "vuex";
+import { required } from "vuelidate/lib/validators";
+import { mapGetters } from "vuex";
+
 export default {
   mixins: [validationMixin],
   props: {
@@ -62,34 +63,42 @@ export default {
   },
   computed: {
     ...mapGetters(["getForm"]),
-
     form() {
-      return this.getForm;
+      return this.getForm || {};
     },
     formTitle() {
       return this.newItemLabel;
     },
   },
-  watch: {
-    model() {},
-  },
   methods: {
     save() {
+      // console.log("Saving form data:", this.form);
       let formdata = new FormData();
       for (let f in this.form) {
-        formdata.append(f, this.form[f]);
+        if (this.form[f] !== undefined) {
+          formdata.append(f, this.form[f]);
+        }
       }
       if (!this.isNew) {
         formdata.append("_method", "PUT");
       }
 
-      this.$store.dispatch("sendForm", {
-        api: this.api,
-        form: formdata,
-        isNew: this.isNew,
-      });
-      this.$emit("dialogForm", false);
+      this.$store
+        .dispatch("sendForm", {
+          api: this.api,
+          form: formdata,
+          isNew: this.isNew,
+        })
+        .then(() => {
+          this.$emit("dialogForm", false);
+        })
+        .catch((err) => {
+          console.error("Error saving form data:", err);
+        });
     },
+  },
+  created() {
+    console.log("Form data:", this.form);
   },
 };
 </script>

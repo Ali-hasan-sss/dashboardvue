@@ -458,14 +458,16 @@ export default {
       if (this.estateToDelete) {
         try {
           await axios.delete(`/estates/${this.estateToDelete}`);
-          this.$emit("estate-deleted", this.estateToDelete);
+          this.filteredEstates = this.filteredEstates.filter(
+            (estate) => estate.id !== this.estateToDelete
+          );
+          this.estateToDelete = null;
         } catch (error) {
           console.error("Error deleting estate:", error);
         }
       }
       this.deleteDialog = false;
     },
-
     openAddEstateDialog() {
       this.setEstateForm({
         office: { id: this.item.office.id },
@@ -516,18 +518,41 @@ export default {
           "/api/addEstate",
           this.$store.state.form
         );
-
+        this.filteredEstates.push(response.data);
         this.$emit("dialogForm", false);
-
-        this.$emit("estate-added", response.data);
+        this.fetchEstates();
       } catch (error) {
         console.error("Error adding estate:", error);
       }
     },
     handleEstateAdded(newEstate) {
       this.filteredEstates.push(newEstate);
-
       this.populateTableData();
+    },
+    handleEstateUpdated(updatedEstate) {
+      // إيجاد العقار المعدل في القائمة
+      const index = this.filteredEstates.findIndex(
+        (estate) => estate.id === updatedEstate.id
+      );
+
+      if (index !== -1) {
+        // تحديث العقار في القائمة المحلية
+        this.$set(this.filteredEstates, index, updatedEstate);
+      }
+
+      this.applyFilter();
+    },
+    async fetchEstates() {
+      const officeId = this.$route.params.id;
+      try {
+        await this.$store.dispatch(
+          "fetchItem",
+          `admin/officeEstates?office_id=${officeId}`
+        );
+        this.applyFilter();
+      } catch (error) {
+        console.error("Error fetching estates:", error);
+      }
     },
   },
   computed: {

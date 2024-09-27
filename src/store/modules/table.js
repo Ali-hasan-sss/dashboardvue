@@ -101,26 +101,24 @@ const actions = {
     commit("SET_LOADING", true);
     commit("SET_TABLE_DATA", []);
 
-    if (!api_info.api || !api_info.api.getAll) {
+    if (!api_info || !api_info.api || !api_info.api.getAll) {
       console.error("API or getAll endpoint is undefined.");
       commit("SET_LOADING", false);
       return;
     }
 
-    var filter = this.state.filter.filter;
-    let params = { params: filter };
+    let params = { params: this.state.filter.filter };
 
-    await axios
-      .get(`${api_info.api.getAll}`, params)
-      .then((res) => {
-        let resultData = res.data.data;
-        commit("SET_TABLE_DATA", resultData);
-        commit("SET_LOADING", false);
-      })
-      .catch((err) => {
-        commit("SET_TABLE_DATA", err);
-        commit("SET_LOADING", false);
-      });
+    try {
+      const res = await axios.get(`${api_info.api.getAll}`, params);
+      let resultData = res.data.data;
+      commit("SET_TABLE_DATA", resultData);
+    } catch (err) {
+      console.error("Error fetching table data:", err.message || err);
+      // إذا كنت ترغب في استخدام البيانات المضافة تجريبيًا في حالة الخطأ، أضف الكود هنا.
+    } finally {
+      commit("SET_LOADING", false);
+    }
   },
   async fetchTableDataFilter({ commit }, api_info) {
     commit("SET_LOADING", true);

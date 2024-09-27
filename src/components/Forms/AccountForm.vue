@@ -289,7 +289,7 @@ export default {
           formdata.append("_method", "PUT");
         }
         this.$store.dispatch("sendForm", {
-          api: this.api,
+          api: this.api.edit,
           form: formdata,
           isNew: this.isNew,
         });

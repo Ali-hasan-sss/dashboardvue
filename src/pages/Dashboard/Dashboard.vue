@@ -273,41 +273,39 @@ export default {
     ...mapActions(["fetchDashboard"]),
 
     generatePieSeries(val) {
-      //  console.log("Generating series for:", val);
       let series = [];
-      let data = this.DashboardData;
-      let order = this.DashboardOrder;
-      let rate = this.DashboardRating;
+      let data = this.DashboardData || {};
+      let order = this.DashboardOrder || {};
+      let rate = this.DashboardRating || {};
 
-      if (val == 0) {
-        series.push(data.houses);
-        series.push(data.shops);
-        series.push(data.lands);
-        series.push(data.farms);
+      if (val == 0 && data) {
+        series.push(data.houses || 0);
+        series.push(data.shops || 0);
+        series.push(data.lands || 0);
+        series.push(data.farms || 0);
         if (data.summer_properties) series.push(data.summer_properties);
-      } else if (val == 1) {
-        series.push(data.sale);
-        series.push(data.rent);
-      } else if (val == 2) {
-        series.push(data.free);
-        series.push(data.bronze);
-        series.push(data.silver);
-        series.push(data.gold);
-      } else if (val == 3) {
-        series.push(order.houses);
-        series.push(order.shops);
-        series.push(order.lands);
-        series.push(order.farms);
+      } else if (val == 1 && data) {
+        series.push(data.sale || 0);
+        series.push(data.rent || 0);
+      } else if (val == 2 && data) {
+        series.push(data.free || 0);
+        series.push(data.bronze || 0);
+        series.push(data.silver || 0);
+        series.push(data.gold || 0);
+      } else if (val == 3 && order) {
+        series.push(order.houses || 0);
+        series.push(order.shops || 0);
+        series.push(order.lands || 0);
+        series.push(order.farms || 0);
         if (order.summer_properties) series.push(order.summer_properties);
-      } else if (val == 4) {
-        series.push(order.sale);
-        series.push(order.rent);
-      } else if (val == 6) {
-        series.push(data.bad_rates);
-        series.push(data.normal_rates);
-        series.push(data.good_rates);
+      } else if (val == 4 && order) {
+        series.push(order.sale || 0);
+        series.push(order.rent || 0);
+      } else if (val == 6 && data) {
+        series.push(data.bad_rates || 0);
+        series.push(data.normal_rates || 0);
+        series.push(data.good_rates || 0);
       }
-      // console.log("Generated series:", series);
       return series;
     },
   },

@@ -171,24 +171,23 @@
 </template>
 
 <script>
+import axios from "axios";
 import Switcher from "../Form Components/Switcher";
 import { validationMixin } from "vuelidate";
-import {
-  required,
-  maxLength,
-  estate_ordersLength,
-  email,
-  sameAs,
-} from "vuelidate/lib/validators";
-import { mapGetters, mapActions } from "vuex";
+import { required } from "vuelidate/lib/validators";
+import { mapGetters } from "vuex";
+
 export default {
   components: { Switcher },
   mixins: [validationMixin],
   props: {
-    api: Object,
-    isNew: Boolean,
+    api: {
+      type: String,
+      required: true,
+    },
     id: {
-      default: null,
+      type: Number,
+      required: true,
     },
     newItemLabel: {
       default: "عنصر",
@@ -203,33 +202,57 @@ export default {
       return this.getForm;
     },
     formTitle() {
-      return (this.isNew ? " إنشاء " : " تعديل ") + this.newItemLabel;
+      return "تعديل " + this.newItemLabel;
     },
   },
-  watch: {
-    model() {},
+  validations() {
+    return {
+      form: {
+        statistical: { required },
+        estate_offices: { required },
+        estates: { required },
+        estate_orders: { required },
+        ratings: { required },
+        office_notifications: { required },
+        costumers_notifications: { required },
+        system_variables: { required },
+        operations: { required },
+        users: { required },
+        employees: { required },
+      },
+    };
   },
   methods: {
     save() {
-      //  this.$v.form.$touch()
-      //  if (!this.$v.form.$invalid) {
-      let formdata = new FormData();
-      for (let f in this.form) {
-        formdata.append(f, this.form[f]);
+      this.$v.form.$touch();
+      if (!this.$v.form.$invalid) {
+        let formdata = {
+          ...this.form,
+          role_id: this.id, // إضافة role_id إلى البيانات المرسلة
+        };
+
+        axios({
+          method: "PUT",
+          url: this.api,
+          data: formdata, // إرسال البيانات كـ JSON بدلاً من FormData
+          headers: {
+            "Content-Type": "application/json", // تأكد من استخدام JSON
+          },
+        })
+          .then((response) => {
+            console.log("Success:", response.data);
+            this.$emit("dialogForm", false);
+          })
+          .catch((error) => {
+            console.error(
+              "Error:",
+              error.response ? error.response.data : error.message
+            );
+            this.$toast.error("حدث خطأ أثناء إرسال البيانات");
+          });
+      } else {
+        this.$toast.error("أكمل الحقول المطلوبة");
       }
-      if (!this.isNew) {
-        formdata.append("_method", "PUT");
-        formdata.append("role_id", this.id);
-      }
-      this.$store.dispatch("sendForm", {
-        api: this.api,
-        form: formdata,
-        isNew: this.isNew,
-      });
-      this.$emit("dialogForm", false);
-      //  } else {
-      //   this.$toast.error("أكمل الحقول المطلوبة");
-      //  }
     },
   },
 };
