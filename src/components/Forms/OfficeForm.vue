@@ -34,11 +34,20 @@
             </v-col>
             <v-col cols="12">
               <v-text-field
-                label="الاسم"
+                label="الاسم بالعربي"
                 type="text"
-                v-model="form.name"
+                v-model="form.name_ar"
                 :error-messages="nameErrors"
-                @input="updateField('name', $event)"
+                @input="updateField('name_ar', $event)"
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-text-field
+                label="الاسم بالانجليزي"
+                type="text"
+                v-model="form.name_en"
+                :error-messages="nameErrors"
+                @input="updateField('name_en', $event)"
               />
             </v-col>
             <v-col cols="12">
@@ -78,10 +87,10 @@
             </v-col>
             <v-col cols="12">
               <v-select
-                :items="Locations"
+                :items="Sublocations"
                 v-model="form.location_id"
                 :error-messages="location_idErrors"
-                label="ضمن المنطقة"
+                label="ضمن الحي"
                 @change="updateField('location_id', $event)"
               />
             </v-col>
@@ -120,12 +129,13 @@ export default {
   validations() {
     return {
       form: {
-        name: { required },
+        name_ar: { required },
+        name_en: { required },
         longitude: { required },
         latitude: { required },
         location_id: { required },
         mobile: { required },
-        password: {}, // Add validation for password if necessary
+        password: {},
       },
     };
   },
@@ -133,6 +143,7 @@ export default {
     return {
       img_baseUrl,
       nameErrors: [],
+      nameEnErrors: [],
       longitudeErrors: [],
       latitudeErrors: [],
       location_idErrors: [],
@@ -141,52 +152,116 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["getForm", "getLocations"]),
+    ...mapGetters(["getForm", "getSubLocations"]),
     form() {
       return this.getForm;
     },
     formTitle() {
       return this.isNew ? "مكتب جديد" : "تعديل المكتب";
     },
-    Locations() {
-      return this.getLocations;
+    Sublocations() {
+      return this.getSubLocations;
     },
   },
   methods: {
-    ...mapActions(["fetchLocations"]),
+    ...mapActions(["fetchSubLocations"]),
     selectImage(val) {
       this.form.logo = val;
       this.form.newLogo = URL.createObjectURL(val);
     },
     save() {
       if (!this.$v.form.$invalid) {
-        let formdata = new FormData();
-        for (let f in this.form) {
-          if (this.form.hasOwnProperty(f)) {
-            formdata.append(f, this.form[f]);
+        // إضافة الحقل الذي يحدد ما إذا تم تغيير الشعار
+        const logoChanged = this.form.newLogo ? 1 : 0;
+
+        // إعداد الطلب الأول (عربي)
+        let formdataAr = new FormData();
+        for (let field in this.form) {
+          if (this.form.hasOwnProperty(field)) {
+            // استبعاد الحقول الخاصة بالاسم
+            if (
+              field !== "name_ar" &&
+              field !== "name_en" &&
+              field !== "name"
+            ) {
+              formdataAr.append(field, this.form[field]);
+            }
           }
         }
-        formdata.append("logo_changed", this.form.newLogo ? 1 : 0);
+        formdataAr.append("logo_changed", logoChanged);
+        formdataAr.append("name", this.form.name_ar); // الاسم بالعربية
         if (!this.isNew) {
-          formdata.append("_method", "PUT");
+          formdataAr.append("_method", "PUT");
         }
-        //  console.log("Form Data to be sent:", this.form);
-        //  console.log("FormData object:", [...formdata.entries()]);
 
+        // إرسال الطلب باللغة العربية
         this.$store
           .dispatch("sendForm", {
             api: this.api,
-            form: formdata,
+            form: formdataAr,
+            headers: { lang: "ar" }, // هيدر عربي
             isNew: this.isNew,
           })
           .then(() => {
-            this.$emit("dialogForm", false);
+            // إعداد الطلب الثاني (إنجليزي)
+            let formdataEn = new FormData();
+            for (let field in this.form) {
+              if (this.form.hasOwnProperty(field)) {
+                // استبعاد الحقول الخاصة بالاسم والاسم الفارغ
+                if (
+                  field !== "name_ar" &&
+                  field !== "name_en" &&
+                  field !== "name"
+                ) {
+                  formdataEn.append(field, this.form[field]);
+                }
+              }
+            }
+            formdataEn.append("logo_changed", logoChanged);
+            formdataEn.append("name", this.form.name_en); // استخدم الاسم بالإنجليزية فقط
+
+            if (!this.isNew) {
+              formdataEn.append("_method", "PUT");
+            }
+
+            // طباعة محتوى الطلب والهيدر
+            console.log(
+              "Request Body (English):",
+              Array.from(formdataEn.entries())
+            );
+            console.log("Request Headers (English):", {
+              lang: "en", // هيدر إنجليزي
+              "Accept-Language": "en", // هيدر Accept-Language
+            });
+
+            // إرسال الطلب الثاني
+            return this.$store.dispatch("sendForm", {
+              api: this.api,
+              form: formdataEn,
+              headers: {
+                lang: "en", // هيدر إنجليزي
+                "Accept-Language": "en", // هيدر Accept-Language
+              },
+              isNew: this.isNew,
+            });
+          })
+          .then(() => {
+            this.$emit("dialogForm", false); // إغلاق الفورم بعد النجاح
           })
           .catch(() => {
-            this.$toast.error("حدث خطأ أثناء حفظ المكتب العقاري.");
+            this.$toast.error("حدث خطأ أثناء حفظ المكتب.");
           });
       } else {
-        this.$toast.error("أكمل الحقول المطلوبة");
+        // عرض رسالة توضح الحقول المطلوبة
+        const errors = this.$v.form.$error;
+        if (errors) {
+          const requiredFields = Object.keys(errors).filter(
+            (field) => errors[field].$invalid
+          );
+          this.$toast.error(`الحقول المطلوبة: ${requiredFields.join(", ")}`);
+        } else {
+          this.$toast.error("أكمل الحقول المطلوبة.");
+        }
       }
     },
     updateField(field, value) {
@@ -197,7 +272,7 @@ export default {
     },
   },
   mounted() {
-    this.fetchLocations("locations");
+    this.fetchSubLocations();
   },
 };
 </script>

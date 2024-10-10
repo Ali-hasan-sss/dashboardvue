@@ -3,6 +3,7 @@
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
         <ExportToExcelButton class="excel-btn" :tableData="tableData" />
+
         <!-- Tabs -->
         <v-tabs-items class="mt-5" v-model="tab">
           <v-tab-item>
@@ -16,14 +17,21 @@
               :api="pending_api_packets"
               :create="create"
               :edit="edit"
+              :mark="mark"
               :del="del"
               :state="state"
               :show="show"
               :headers="headers_panding"
               @openForm="setForm"
-            ></Table>
+            >
+              <template v-slot:item.status="{ item }">
+                <div :class="getStatusStyle(item.status)"></div>
+                <span v-if="item.status !== 'new'"></span>
+              </template>
+            </Table>
           </v-tab-item>
         </v-tabs-items>
+
         <!-- Form -->
         <v-dialog v-model="dialog_state" max-width="500px">
           <StatusForm
@@ -45,6 +53,7 @@
 import ExportToExcelButton from "@/components/ExportToExcelButton.vue";
 import StatusForm from "@/components/Forms/StatusForm";
 import axios from "@/plugins/axios";
+
 export default {
   data() {
     return {
@@ -53,6 +62,7 @@ export default {
       isNew: true,
       create: false,
       edit: false,
+      mark: true,
       del: true,
       show: false,
       state: false,
@@ -81,6 +91,10 @@ export default {
           value: "name",
         },
         {
+          text: "رقم الموبايل",
+          value: "mobile",
+        },
+        {
           text: "إيميل المرسل",
           value: "sender_email",
         },
@@ -93,21 +107,21 @@ export default {
           value: "message",
         },
         {
+          text: "الحالة",
+          value: "status",
+          cellClass: (item) => this.getStatusStyle(item.status),
+        },
+        {
           text: "تاريخ الارسال ",
           value: "created_at",
         },
-
-        // {
-        //  text: "عدد الغرف",
-        //  value: "rooms"
-        // },
         {
           text: "العمليات",
           value: "actions",
           sortable: false,
         },
       ],
-      tableData: [], // data for export to Excel
+      tableData: [],
     };
   },
   components: {
@@ -115,23 +129,23 @@ export default {
     ExportToExcelButton,
   },
   computed: {
-    // eslint-disable-next-line vue/return-in-computed-property
     getApiForForm() {
       return this.pending_api_packets;
     },
   },
   methods: {
+    getStatusStyle(status) {
+      return status === "new" ? "status-circle" : "";
+    },
+
     setForm(val) {
       let form = {
-        transaction_id: "", //
+        transaction_id: "",
       };
-      // initialize form
       this.$store.dispatch("initForm", form);
 
-      // edit
       if (val != null) {
         this.isNew = false;
-        // edit state
         if (val.hasOwnProperty("hasState")) {
           form = {
             transaction_id: null,
@@ -150,20 +164,27 @@ export default {
     async fetchData() {
       try {
         const response = await axios.get(this.getApiUrl());
-        // console.log("Fetched Data:", response.data);
-        this.tableData = response.data.data || []; // update tableData
-        // console.log("Updated tableData:", this.tableData); //comferm update tableData for export to excel
+        this.tableData = response.data.data || [];
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     },
+
     getApiUrl() {
       return this.pending_api_packets.getAll;
     },
   },
   mounted() {
     this.fetchData();
-    //   this.$store.dispatch('initForm', this.form)
   },
 };
 </script>
+<style scoped>
+.status-circle {
+  width: 10px; /* يمكن تعديل الحجم حسب الحاجة */
+  height: 10px; /* يمكن تعديل الحجم حسب الحاجة */
+  background-color: red; /* لون الدائرة */
+  border-radius: 50%; /* لجعلها دائرة */
+  display: inline-block;
+}
+</style>

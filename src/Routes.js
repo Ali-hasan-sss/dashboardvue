@@ -29,6 +29,7 @@ import PriceDomains from "@/pages/system categories/price-domains/index";
 import EstateTypes from "@/pages/system categories/estate-types/index";
 import InteriorStatus from "@/pages/system categories/interior-statuses/index";
 import location from "@/pages/system categories/locations/index";
+import sublocation from "./pages/system categories/sub-location/index";
 import zones from "@/pages/system categories/zones/index";
 import OwnershipTypes from "@/pages/system categories/ownership-types/index";
 
@@ -42,7 +43,6 @@ import Maps from "@/pages/Maps/Google";
 import Error from "@/pages/Error/Error";
 import Login from "@/pages/Login/Login";
 import test from "@/pages/test/index";
-import app_menu from "./pages/app_settings/app_menu.vue";
 import contact from "./pages/app_settings/contact_info.vue";
 import editinfo from "./pages/app_settings/editinfo.vue";
 Vue.use(Router);
@@ -206,6 +206,12 @@ const routes = [
         meta: { loginRequired: true },
       },
       {
+        path: "sub-location",
+        name: "sub-location",
+        component: sublocation,
+        meta: { loginRequired: true },
+      },
+      {
         path: "zones",
         name: "Zones",
         component: zones,
@@ -251,11 +257,6 @@ const routes = [
         path: "Messages",
         name: "Messages",
         component: Messages,
-      },
-      {
-        path: "app-menu",
-        name: "menu",
-        component: app_menu,
       },
       {
         path: "Edit-Terms",

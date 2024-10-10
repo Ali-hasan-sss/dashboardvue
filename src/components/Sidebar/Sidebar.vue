@@ -80,6 +80,9 @@
           <v-list-item-content>
             <v-list-item-title class="grey--text body-2 font-weight-bold" link>
               {{ item.title }}
+              <template v-if="item.title === 'تواصل معنا'">
+                <count />
+              </template>
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
@@ -90,11 +93,12 @@
 
 <script>
 import { mapActions, mapState } from "vuex";
-
+import count from "../../pages/Messages/count.vue";
 export default {
   props: {
     source: String,
   },
+  components: { count },
   data() {
     return {
       items: [
@@ -191,6 +195,7 @@ export default {
             },
             { title: "العقود", icon: "mdi-check-all", link: "/contracts" },
             { title: "الاماكن", icon: "mdi-map-marker", link: "/location" },
+            { title: "الاحياء", icon: "mdi-map-marker", link: "/sub-location" },
             { title: "الزون", icon: "mdi-map-marker", link: "/zones" },
           ],
         },
@@ -200,11 +205,6 @@ export default {
           link: "#",
           model: false,
           children: [
-            {
-              title: " قائمة التطبيق",
-              icon: "mdi-menu",
-              link: "/app-menu",
-            },
             {
               title: "معلومات التواصل",
               icon: "mdi-phone",

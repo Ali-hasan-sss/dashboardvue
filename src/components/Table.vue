@@ -102,10 +102,11 @@
           {{ item.office.mobile == null ? "" : item.office.mobile }}
         </p>
       </template>
+
       <template v-slot:[`item.user.authentication`]="{ item }">
         <p dir="ltr">{{ item.user == null ? "" : item.user.authentication }}</p>
       </template>
-           
+
       <template v-slot:[`item.created_at`]="{ item }">
         {{ formatDateWithTime(item.created_at) }}
       </template>
@@ -124,18 +125,19 @@
           : "لايوجد"
       }}</template>
       <template v-slot:[`item.price`]="{ item }">
-        <v-chip 
-      class="ma-2"
-      color="green"
-      outlined 
-      v-if="item.is_price_changed">
+        <v-chip
+          class="ma-2"
+          color="green"
+          outlined
+          v-if="item.is_price_changed"
+        >
           {{ item.price.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,") }}
         </v-chip>
         <p v-else>
           {{ item.price.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,") }}
         </p>
       </template>
-            <template v-slot:[`item.packet.price`]="{ item }">{{
+      <template v-slot:[`item.packet.price`]="{ item }">{{
         item.packet.price.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")
       }}</template>
 
@@ -220,13 +222,28 @@
           <v-menu offset-y>
             <template
               v-slot:activator="{ on }"
-              v-if="state || edit || del || linkToAddInformation || show || subscribe || order ||showOffice"
+              v-if="
+                state ||
+                edit ||
+                del ||
+                linkToAddInformation ||
+                show ||
+                subscribe ||
+                order ||
+                showOffice
+              "
             >
               <v-btn small dark color="grey darken-1" v-on="on">
                 العمليات
               </v-btn>
             </template>
             <v-list>
+              <v-list-item v-if="mark" @click="markAsRead(item.id)">
+                <v-list-item-title small>تعيين كمقروئة</v-list-item-title>
+                <v-list-item-icon>
+                  <v-icon small> mdi-check-circle </v-icon>
+                </v-list-item-icon>
+              </v-list-item>
               <v-list-item v-if="state" @click="editState(item)">
                 <v-list-item-title small> قبول أو رفض</v-list-item-title>
                 <v-list-item-icon
@@ -238,7 +255,10 @@
                   <v-icon small> mdi-pencil </v-icon></v-list-item-icon
                 ></v-list-item
               >
-              <v-list-item v-if="linkToAddInformation" @click="copyLink(item.uuid)">
+              <v-list-item
+                v-if="linkToAddInformation"
+                @click="copyLink(item.uuid)"
+              >
                 <v-list-item-title> رابط إكمال البيانات</v-list-item-title
                 ><v-list-item-icon>
                   <v-icon small> mdi-content-copy </v-icon></v-list-item-icon
@@ -299,6 +319,10 @@
 
 <script>
 import { mapGetters, mapActions } from "vuex";
+import Cookies from "js-cookie";
+import axios from "@/plugins/axios";
+import { GET_URL } from "@/pages/app_settings/url";
+
 export default {
   props: {
     headers: Array,
@@ -322,6 +346,9 @@ export default {
     },
     edit: {
       default: true,
+    },
+    mark: {
+      default: false,
     },
     contract_del: {
       default: false,
@@ -347,7 +374,7 @@ export default {
     state: {
       default: false,
     },
-    linkToAddInformation:{
+    linkToAddInformation: {
       default: false,
     },
     subscribe: {
@@ -385,7 +412,7 @@ export default {
     },
     search(val) {
       if (val == null) {
-       this.getData
+        this.getData;
       }
     },
   },
@@ -411,7 +438,6 @@ export default {
     formatDateWithTime(val) {
       var data = new Date(val);
       return (
-       
         data.getUTCFullYear() +
         "/" +
         (data.getUTCMonth() + 1) +
@@ -419,11 +445,10 @@ export default {
         data.getUTCDate() +
         ":" +
         (data.getHours() + 1) +
-        ":" + 
+        ":" +
         data.getUTCMinutes() +
         ":" +
-        data.getUTCSeconds() 
-  
+        data.getUTCSeconds()
       );
     },
     changePagination(val) {
@@ -447,13 +472,14 @@ export default {
     copyLink(uuid) {
       const link = `https://swesshome.come/api/v2/update-estate-offer/${uuid}`;
 
-      navigator.clipboard.writeText(link)
+      navigator.clipboard
+        .writeText(link)
         .then(() => {
-          this.$toast.success('تم نسخ الرابط بنجاح'); 
+          this.$toast.success("تم نسخ الرابط بنجاح");
         })
         .catch((error) => {
-          console.error('Failed to copy link:', error);
-          this.$toast.error('حدث خطأ أثناء نسخ الرابط'); 
+          console.error("Failed to copy link:", error);
+          this.$toast.error("حدث خطأ أثناء نسخ الرابط");
         });
     },
     openDeleteDialog(item) {
@@ -515,6 +541,22 @@ export default {
 
       let routeData = this.$router.resolve({ name: "office", params });
       window.open(routeData.href, "_blank");
+    },
+    async markAsRead(message_id) {
+      try {
+        const token = Cookies.get("token");
+        await axios.put(`${GET_URL}/message/read/${message_id}`);
+        // تحديث حالة الرسالة في الجدول
+        this.tableData = this.tableData.map((message) =>
+          message.id === message_id ? { ...message, status: "read" } : message
+        );
+        this.$toast.success("تم تحويل الرسالة إلى مقروءة.");
+      } catch (error) {
+        console.error("Error marking message as read:", error);
+        this.$toast.error(
+          "حدث خطأ أثناء تحويل الرسالة. يرجى المحاولة مرة أخرى."
+        );
+      }
     },
   },
   async mounted() {

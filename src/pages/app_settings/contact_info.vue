@@ -124,7 +124,7 @@
 
 <script>
 import axios from "axios";
-
+import { GET_URL, EDIT_URLV2 } from "./url";
 export default {
   name: "ContactInfo",
   data() {
@@ -148,7 +148,7 @@ export default {
       this.loading = true;
       try {
         const response = await axios.get(
-          "https://swess.store/api/v2/app/getContactUsVariables"
+          `${GET_URL}/app/getContactUsVariables`
         );
         this.contactInfo = response.data.data;
       } catch (error) {
@@ -171,11 +171,12 @@ export default {
     async saveChanges() {
       this.saving = true;
       try {
-        await axios.post("https://swess.store/api/editContactUsVariables", {
+        await axios.post(`${EDIT_URLV2}/editContactUsVariables`, {
           [this.dialogField]: this.formData.value,
         });
         this.contactInfo[this.dialogField] = this.formData.value;
         this.closeDialog();
+        this.$toast.success("تم التعديل بنجاح");
       } catch (error) {
         this.errorMessage = "تعذر حفظ البيانات. حاول مرة أخرى لاحقاً.";
       } finally {
