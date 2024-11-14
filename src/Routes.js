@@ -45,6 +45,7 @@ import Login from "@/pages/Login/Login";
 import test from "@/pages/test/index";
 import contact from "./pages/app_settings/contact_info.vue";
 import editinfo from "./pages/app_settings/editinfo.vue";
+import UserDetails from "./components/UserDetails.vue";
 Vue.use(Router);
 
 const routes = [
@@ -267,6 +268,12 @@ const routes = [
         path: "contact",
         name: "contact",
         component: contact,
+      },
+      {
+        path: "/users/:id",
+        name: "UserDetails",
+        component: UserDetails,
+        props: true,
       },
     ],
   },

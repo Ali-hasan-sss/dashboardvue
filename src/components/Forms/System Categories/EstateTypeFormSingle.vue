@@ -1,8 +1,10 @@
 <template>
-  <v-form @submit.prevent="save">
+  <v-form @submit.prevent="submitForm">
     <v-card>
       <v-card-title>
-        <span>{{ formTitle }}</span>
+        <span>{{
+          isNew ? `إضافة ${newItemLabel}` : `تعديل ${newItemLabel}`
+        }}</span>
       </v-card-title>
       <v-card-text>
         <v-container>
@@ -13,26 +15,16 @@
                 type="text"
                 :errorMessages="name_ar_single_Errors"
                 :model="field.name_ar_single"
-                @changeValue="
-                  (val) => {
-                    field.name_ar_single = val;
-                    $v.field.name_ar_single.$touch();
-                  }
-                "
+                @changeValue="updateField('name_ar_single', $event)"
               ></Input>
             </v-col>
             <v-col cols="12" sm="6" md="6">
               <Input
-                label="الأسم بالاجنبي "
+                label="الأسم بالإنجليزي "
                 type="text"
                 :errorMessages="name_en_single_Errors"
                 :model="field.name_en_single"
-                @changeValue="
-                  (val) => {
-                    field.name_en_single = val;
-                    /*$v.form.name_en.$touch()*/
-                  }
-                "
+                @changeValue="updateField('name_en_single', $event)"
               ></Input>
             </v-col>
           </v-row>
@@ -40,14 +32,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <!-- <v-btn
-    color="blue darken-1"
-    text>
-    Cancel
-   </v-btn> -->
-        <div>
-          <Button color="blue darken-1" type="submit" label="حفظ"> </Button>
-        </div>
+        <Button color="blue darken-1" type="submit" label="حفظ"></Button>
       </v-card-actions>
     </v-card>
   </v-form>
@@ -55,31 +40,25 @@
 
 <script>
 import { validationMixin } from "vuelidate";
-import {
-  required,
-  maxLength,
-  nameLength,
-  email,
-  sameAs,
-} from "vuelidate/lib/validators";
-import { mapGetters, mapActions } from "vuex";
+import { required } from "vuelidate/lib/validators";
+
 export default {
   mixins: [validationMixin],
   props: {
-    api: Object,
     isNew: Boolean,
+    initialData: {
+      type: Object,
+      default: () => ({ name_ar: "", name_en: "", id: null }), // إضافة id في البيانات الأولية
+    },
     newItemLabel: {
+      type: String,
       default: "عنصر",
     },
   },
   validations: {
     field: {
-      name_ar_single: {
-        required,
-      },
-      name_en_single: {
-        required,
-      },
+      name_ar_single: { required },
+      name_en_single: { required },
     },
   },
   data() {
@@ -90,60 +69,54 @@ export default {
       field: {
         name_ar_single: "",
         name_en_single: "",
+        id: null, // إضافة الحقل id في البيانات
       },
     };
   },
   computed: {
-    ...mapGetters(["getForm"]),
-
     name_ar_single_Errors() {
       const errors = [];
       if (!this.$v.field.name_ar_single.$dirty) return errors;
-      !this.$v.field.name_ar_single.required &&
+      if (!this.$v.field.name_ar_single.required) {
         errors.push(this.requried_error_msgs.required);
+      }
       return errors;
     },
     name_en_single_Errors() {
       const errors = [];
       if (!this.$v.field.name_en_single.$dirty) return errors;
-      !this.$v.field.name_en_single.required &&
+      if (!this.$v.field.name_en_single.required) {
         errors.push(this.requried_error_msgs.required);
+      }
       return errors;
     },
-    form() {
-      return this.getForm;
-    },
-    formTitle() {
-      return this.newItemLabel;
-    },
-  },
-  watch: {
-    model() {},
   },
   methods: {
-    save() {
+    updateField(fieldName, value) {
+      this.field[fieldName] = value;
+      this.$v.field[fieldName].$touch();
+    },
+    submitForm() {
       this.$v.field.$touch();
       if (!this.$v.field.$invalid) {
-        this.form.name_ar = this.field.name_ar_single;
-        this.form.name_en = this.field.name_en_single;
-
-        let formdata = new FormData();
-        for (let f in this.form) {
-          formdata.append(f, this.form[f]);
-        }
-        if (!this.isNew) {
-          formdata.append("_method", "PUT");
-        }
-        this.$store.dispatch("sendForm", {
-          api: this.api,
-          form: formdata,
-          isNew: this.isNew,
+        // تمرير الـ ID مع البيانات
+        this.$emit("submitForm", {
+          id: this.field.id, // تمرير الـ id إذا كان موجودًا
+          name_ar: this.field.name_ar_single,
+          name_en: this.field.name_en_single,
         });
-        this.$emit("dialogForm", false);
       } else {
         this.$toast.error("أكمل الحقول المطلوبة");
       }
     },
+  },
+  mounted() {
+    // تحديث البيانات فقط إذا كانت الحالة ليست جديدة
+    if (!this.isNew) {
+      this.field.name_ar_single = this.initialData.name_ar || "";
+      this.field.name_en_single = this.initialData.name_en || "";
+      this.field.id = this.initialData.id || null; // إضافة ID عند التعديل
+    }
   },
 };
 </script>

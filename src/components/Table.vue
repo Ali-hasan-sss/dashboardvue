@@ -116,9 +116,17 @@
       <template v-slot:[`item.area`]="{ item }"
         >{{ item.area }} {{ item.area_unit.name_ar }}</template
       >
-      <template v-slot:[`item.user.first_name`]="{ item }">{{
-        item.user ? item.user.first_name + " " + item.user.last_name : "لايوجد"
-      }}</template>
+      <template v-slot:[`item.user.first_name`]="{ item }">
+        <span
+          v-if="item.user"
+          @click="goToUserProfile(item.user.id)"
+          class="clickable"
+        >
+          {{ item.user.first_name + " " + item.user.last_name }}
+        </span>
+        <span v-else>لا يوجد</span>
+      </template>
+
       <template v-slot:[`item.period_number`]="{ item }">{{
         item.period_number
           ? item.period_number + " " + item.period_type.name_ar.split("|")[1]
@@ -485,6 +493,9 @@ export default {
     openDeleteDialog(item) {
       this.model = item;
       this.dialogDelete = !this.dialogDelete;
+    },
+    goToUserProfile(userId) {
+      this.$router.push(`/users/${userId}`);
     },
     deleteItemConfirm() {
       this.deleteItem({

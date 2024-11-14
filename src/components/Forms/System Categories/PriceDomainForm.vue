@@ -27,7 +27,7 @@
                 :disabled="minCheck"
                 label="الحد الأدنى"
                 type="number"
-                :v-bind="form.min"
+                :value="form.min"
                 :errorMessages="minErrors"
                 @changeValue="
                   (val) => {
@@ -42,7 +42,7 @@
                 :disabled="maxCheck"
                 label="الحد الأعلى "
                 type="number"
-                :v-bind="form.max"
+                :value="form.max"
                 :errorMessages="maxErrors"
                 @changeValue="
                   (val) => {
@@ -57,11 +57,6 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <!-- <v-btn
-    color="blue darken-1"
-    text>
-    Cancel
-   </v-btn> -->
         <div>
           <Button color="blue darken-1" type="submit" label="حفظ"> </Button>
         </div>
@@ -72,14 +67,8 @@
 
 <script>
 import { validationMixin } from "vuelidate";
-import {
-  required,
-  maxLength,
-  minLength,
-  email,
-  sameAs,
-} from "vuelidate/lib/validators";
-import { mapGetters, mapActions } from "vuex";
+import { required } from "vuelidate/lib/validators";
+
 export default {
   mixins: [validationMixin],
   props: {
@@ -88,86 +77,33 @@ export default {
     newItemLabel: {
       default: "عنصر",
     },
+    edit: Object,
   },
   validations: {
     form: {
-      min: {
-        required,
-      },
-      max: {
-        required,
-      },
+      min: { required },
+      max: { required },
     },
   },
   data() {
     return {
-      maxCheck: true,
-      minCheck: true,
-      requried_error_msgs: {
-        required: "هذا الحقل مطلوب.",
-      },
+      form: this.isNew ? { min: "", max: "" } : { ...this.edit },
+      formTitle: this.isNew ? "إضافة مجال سعر جديد" : "تعديل مجال السعر",
+      minCheck: false,
+      maxCheck: false,
     };
   },
-  computed: {
-    ...mapGetters(["getForm"]),
-    minErrors() {
-      const errors = [];
-      if (!this.$v.form.min.$dirty) return errors;
-      !this.$v.form.min.required &&
-        errors.push(this.requried_error_msgs.required);
-      return errors;
-    },
-    maxErrors() {
-      const errors = [];
-      if (!this.$v.form.max.$dirty) return errors;
-      !this.$v.form.max.required &&
-        errors.push(this.requried_error_msgs.required);
-      return errors;
-    },
-    form() {
-      return this.getForm;
-    },
-    formTitle() {
-      return this.newItemLabel;
-    },
-  },
-  watch: {
-    model() {},
-    maxCheck() {
-      this.maxCheck != true ? (this.form.max = "999999999999999999") : "";
-    },
-    minCheck() {
-      this.minCheck != true ? (this.form.min = 0) : "";
-    },
-  },
   methods: {
-    ChangeMax(val) {
-      this.maxCheck = val.value;
-      this.minCheck ? "" : (this.minCheck = !val.value);
-    },
-    ChangeMin(val) {
-      this.minCheck = val.value;
-      this.maxCheck ? "" : (this.maxCheck = !val.value);
-    },
     save() {
-      this.$v.form.$touch();
-      if (!this.$v.form.$invalid) {
-        let formdata = new FormData();
-        for (let f in this.form) {
-          formdata.append(f, this.form[f]);
-        }
-        if (!this.isNew) {
-          formdata.append("_method", "PUT");
-        }
-        this.$store.dispatch("sendForm", {
-          api: this.api,
-          form: formdata,
-          isNew: this.isNew,
-        });
-        this.$emit("dialogForm", false);
-      } else {
-        this.$toast.error("أكمل الحقول المطلوبة");
-      }
+      this.$emit("save", this.form);
+    },
+    ChangeMin() {
+      this.form.min = "";
+      this.minCheck = !this.minCheck;
+    },
+    ChangeMax() {
+      this.form.max = "";
+      this.maxCheck = !this.maxCheck;
     },
   },
 };

@@ -30,17 +30,24 @@
           </template>
         </Table>
 
-        <!-- Form -->
+        <!-- Dialog for creating a new item -->
         <v-dialog v-model="dialog_form" max-width="500px">
           <GeneralForm
-            v-if="dialog_form"
+            v-if="dialog_form && isNew"
             :fields="fields"
-            newItemLabel="عرض"
+            newItemLabel="إنشاء عرض"
             :isNew="isNew"
             :api="api"
             @saveForm="handleFormSave"
             @dialogForm="dialog_form = false"
-          ></GeneralForm>
+          />
+          <!-- Dialog for editing an existing item -->
+          <EditForm
+            v-if="dialog_form && !isNew"
+            :initialData="currentItem"
+            @saveForm="handleFormSave"
+            @close="dialog_form = false"
+          />
         </v-dialog>
       </v-col>
     </v-row>
@@ -48,12 +55,13 @@
 </template>
 
 <script>
-import GeneralForm from "../../components/Forms/GeneralForm";
+import GeneralForm from "../../components/Forms/GeneralForm.vue";
+import EditForm from "./EditForm.vue";
 import ExportToExcelButton from "../../components/ExportToExcelButton.vue";
 import axios from "../../plugins/axios";
 
 export default {
-  components: { GeneralForm, ExportToExcelButton },
+  components: { GeneralForm, EditForm, ExportToExcelButton },
   data() {
     return {
       tableData: [],
@@ -62,6 +70,7 @@ export default {
       api: {
         getAll: "offers",
         create: "offers",
+        edit: "offer",
         delete: "offer?offer_id",
       },
       create: true,
@@ -69,6 +78,10 @@ export default {
       edit: true,
       filter: "offers",
       title: "العروض العقارية",
+      currentItem: {
+        size: null,
+        price: null,
+      },
       fields: [
         {
           name: "الحجم",
@@ -104,22 +117,16 @@ export default {
   },
   methods: {
     setForm(val) {
-      const form = {
-        size: null,
-        price: null,
-      };
-
-      this.$store.dispatch("initForm", form);
-
       if (val) {
-        this.isNew = false;
-        this.$store.dispatch("setForm", val);
+        this.currentItem = { ...val }; // تعيين العنصر الحالي
+        this.isNew = false; // ضبط الوضع على تعديل
       } else {
-        this.isNew = true;
+        this.currentItem = { size: null, price: null }; // إعادة تعيين القيم الجديدة
+        this.isNew = true; // ضبط الوضع على إنشاء
       }
-      this.dialog_form = true;
-    },
 
+      this.dialog_form = true; // فتح الحوار
+    },
     async fetchData() {
       try {
         const response = await axios.get(this.api.getAll);
@@ -129,25 +136,20 @@ export default {
       }
     },
 
-    async handleFormSave() {
+    async handleFormSave(formData) {
       try {
-        const form = this.$store.getters.getForm;
-        if (!this.isNew && !form.id) {
-          throw new Error("معرف العرض غير موجود!");
-        }
-
         const apiEndpoint = this.isNew
           ? this.api.create
-          : `${this.api.create}/${form.id}`;
+          : `${this.api.edit}/${this.currentItem.id}`; // استخدام ID عند التعديل
 
-        if (this.isNew) {
-          await axios.post(apiEndpoint, form);
-        } else {
-          await axios.put(apiEndpoint, form);
-        }
+        const response = this.isNew
+          ? await axios.post(apiEndpoint, formData)
+          : await axios.put(apiEndpoint, formData);
 
-        this.dialog_form = false;
-        this.fetchData();
+        console.log("Response:", response.data);
+        this.dialog_form = false; // إغلاق الحوار
+        this.fetchData(); // تحديث البيانات
+        this.$toast.success("تم تعديل العرض بنجاح");
       } catch (error) {
         console.error("Error saving form:", error);
       }
@@ -155,26 +157,14 @@ export default {
     async deleteItem(id) {
       try {
         await axios.delete(`${this.api.delete}=${id}`);
-        this.fetchData();
+        this.fetchData(); // تحديث البيانات بعد الحذف
       } catch (error) {
         console.error("Error deleting item:", error);
       }
     },
   },
-  watch: {
-    fields(newFields) {
-      console.log("Received fields:", newFields);
-    },
-    isNew(newIsNew) {
-      console.log("Is new:", newIsNew);
-    },
-    api(newApi) {
-      console.log("API:", newApi);
-    },
-  },
-
   mounted() {
-    this.fetchData();
+    this.fetchData(); // جلب البيانات عند التحميل
   },
 };
 </script>

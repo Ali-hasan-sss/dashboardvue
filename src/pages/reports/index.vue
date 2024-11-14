@@ -139,8 +139,11 @@ export default {
       }
     },
     openUserDialog(user) {
-      alert(`Details for user: ${user.first_name} ${user.last_name}`);
-      // Here you can open a dialog or redirect to a user details page
+      if (user && user.id) {
+        this.$router.push({ path: `/users/${user.id}` });
+      } else {
+        console.error("User ID not found");
+      }
     },
     getApiUrl() {
       return this.pending_api_packets.getAll;

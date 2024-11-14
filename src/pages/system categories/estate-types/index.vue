@@ -1,10 +1,11 @@
 <template>
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
+      <v-col cols="12" md="6">انواع العقارات</v-col>
       <v-col>
-        <v-btn @click="setForm()" color="primary" style="margin-bottom: 10px"
-          >إضافة نوع عقار</v-btn
-        >
+        <v-btn @click="openNewForm" color="primary" style="margin-bottom: 10px">
+          إضافة نوع عقار
+        </v-btn>
 
         <!-- قائمة الأنواع -->
         <v-data-table
@@ -14,14 +15,10 @@
           class="elevation-1"
           hide-default-footer
         >
-          <!-- استخدام slot لتغليف tbody بـ draggable -->
           <template v-slot:body="{ items }">
             <draggable
               v-model="estateTypes"
-              :options="{
-                handle: '.drag-handle',
-                animation: 300,
-              }"
+              :options="{ handle: '.drag-handle', animation: 300 }"
               @end="onDragEnd"
               tag="tbody"
             >
@@ -34,11 +31,15 @@
                 <td>{{ item.name_en }}</td>
                 <td>{{ item.created_at }}</td>
                 <td>
-                  <v-icon
-                    small
-                    color="green"
-                    style="margin-left: 20px"
-                    @click.stop="setForm(item)"
+                  <v-switch
+                    v-model="item.isActive"
+                    @change="toggleActivation(item)"
+                    color="primary"
+                    inset
+                  ></v-switch>
+                </td>
+                <td>
+                  <v-icon small color="green" @click.stop="openEditForm(item)"
                     >mdi-pencil</v-icon
                   >
                   <v-icon small color="red" @click.stop="confirmDelete(item.id)"
@@ -50,19 +51,23 @@
           </template>
         </v-data-table>
 
+        <!-- مكون الإضافة والتعديل لنوع العقار -->
         <v-dialog v-model="dialog_form" max-width="500px">
-          <EstateTypeForm
-            :formData="currentFormData"
-            :isNew="isNew"
-            :api="api"
-            @save="handleSave"
-            @dialogForm="dialog_form = false"
-          ></EstateTypeForm>
+          <!-- داخل مكون EstateTypeForm -->
+          <v-dialog v-model="dialog_form" max-width="500px">
+            <EstateTypeForm
+              :formData="currentFormData"
+              @save="handleSaveOrEdit"
+              @dialogForm="dialog_form = false"
+              :isNew="isNew"
+            />
+          </v-dialog>
         </v-dialog>
+
         <v-dialog v-model="dialog_confirm_delete" max-width="400px">
           <v-card>
             <v-card-title class="headline">تأكيد الحذف</v-card-title>
-            <v-card-text> هل أنت متأكد أنك تريد حذف هذا العنصر؟ </v-card-text>
+            <v-card-text>هل أنت متأكد أنك تريد حذف هذا العنصر؟</v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn
@@ -94,14 +99,12 @@ export default {
       dialog_confirm_delete: false,
       itemToDelete: null,
       api: {
-        getAll: "estateTypes",
-        create: "newEstateType",
-        update: "updateEstateType",
-        delete: "deleteEstateType",
-        saveOrder: "editEstateTypeOrder",
+        getAll: "/estateTypes",
+        create: "/newEstateType",
+        update: "/editEstateType",
+        delete: "/deleteEstateType",
+        saveOrder: "/editEstateTypeOrder",
       },
-      title: "أنواع العقارات",
-      filter: "estate-types",
       estateTypes: [],
       currentFormData: {},
       headers: [
@@ -118,6 +121,7 @@ export default {
           value: "name_en",
           sortable: false,
         },
+        { text: "الحالة", align: "start", value: "isActive", sortable: false },
         {
           text: "العمليات",
           align: "center",
@@ -131,41 +135,66 @@ export default {
     async fetchEstateTypes() {
       try {
         const response = await axios.get(this.api.getAll);
-        if (response.data && Array.isArray(response.data.data)) {
-          this.estateTypes = response.data.data;
-          this.updateIndexing();
-        } else {
-          console.error("Unexpected data structure:", response.data);
-        }
+        // تحويل قيمة is_active إلى boolean
+        this.estateTypes = response.data.data.map((item) => ({
+          ...item,
+          isActive: item.is_active === "1", // تحويل القيمة من string إلى boolean
+        }));
+        this.updateIndexing();
       } catch (error) {
         console.error("Error fetching estate types:", error);
       }
     },
-    setForm(item = null) {
-      this.isNew = !item;
-      this.currentFormData = item ? { ...item } : {};
-      this.dialog_form = true;
+
+    async toggleActivation(item) {
+      try {
+        // إرسال القيمة كـ 1 أو 0 حسب حالة isActive
+        const updatedStatus = item.isActive ? "1" : "0";
+        await axios.put(`${this.api.update}/${item.id}`, {
+          is_active: updatedStatus, // إرسال is_active بدلاً من isActive
+        });
+        this.$toast.success(
+          `تم ${item.isActive ? "تفعيل" : "تعطيل"} نوع العقار بنجاح`
+        );
+      } catch (error) {
+        console.error("Error updating activation status:", error);
+        this.$toast.error("فشل في تعديل حالة التفعيل");
+        item.isActive = !item.isActive; // إعادة الحالة الأصلية عند حدوث خطأ
+      }
     },
 
-    async handleSave(formData) {
-      console.log("البيانات المرسلة:", formData);
-      console.log("هل هو تعديل؟", !this.isNew);
+    openNewForm() {
+      this.isNew = true;
+      this.currentFormData = {};
+      this.dialog_form = true;
+    },
+    openEditForm(item) {
+      this.isNew = false;
+      this.currentFormData = { ...item };
+      this.dialog_form = true;
+      console.log("Editing item:", item); // تأكد أن item يحتوي على id هنا
+    },
+    // داخل دالة handleSave
 
+    async handleSaveOrEdit(formData) {
+      if (!formData.id && !this.isNew) {
+        console.error("Error: ID is missing for update.");
+        this.$toast.error("فشل في تعديل النوع - المعرف مفقود.");
+        return;
+      }
       try {
         if (this.isNew) {
-          // إضافة جديدة
           await axios.post(this.api.create, formData);
-        } else if (formData.id) {
-          // تعديل
-          await axios.put(`${this.api.update}/${formData.id}`, formData);
+          this.$toast.success("تم إضافة نوع العقار بنجاح");
         } else {
-          console.error("Missing estate type ID for update");
+          await axios.put(`${this.api.update}/${formData.id}`, formData);
+          this.$toast.success("تم تحديث النوع بنجاح");
         }
-
         this.fetchEstateTypes();
         this.dialog_form = false;
       } catch (error) {
-        console.error("Error saving estate type:", error);
+        console.error("Error saving or updating estate type:", error);
+        this.$toast.error("فشل في حفظ أو تحديث نوع العقار");
       }
     },
     confirmDelete(itemId) {
@@ -184,12 +213,12 @@ export default {
       }
     },
     async saveOrder() {
+      const orderedEstateTypes = this.estateTypes.map((item, index) => ({
+        id: item.id,
+        order: index + 1,
+      }));
       try {
-        const orderedEstateTypes = this.estateTypes.map((item, index) => ({
-          id: item.id,
-          order: index + 1,
-        }));
-        await axios.put(`${this.api.saveOrder}`, {
+        await axios.put(this.api.saveOrder, {
           estateTypes: orderedEstateTypes,
         });
       } catch (error) {
@@ -197,9 +226,7 @@ export default {
       }
     },
     onDragEnd() {
-      this.saveOrder().then(() => {
-        this.updateIndexing();
-      });
+      this.saveOrder().then(this.updateIndexing);
     },
     updateIndexing() {
       this.estateTypes = this.estateTypes.map((item, index) => ({
@@ -208,17 +235,13 @@ export default {
       }));
     },
   },
-
   mounted() {
     this.fetchEstateTypes();
-    console.log("API update URL:", this.api.update);
   },
 };
 </script>
 <style scoped>
 .drag-handle {
-  font-size: 24px;
   cursor: move;
-  color: #1976d2;
 }
 </style>

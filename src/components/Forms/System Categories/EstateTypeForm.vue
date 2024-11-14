@@ -7,60 +7,23 @@
       <v-card-text>
         <v-container>
           <v-row>
+            <!-- الحقول النصية -->
             <v-col cols="12" sm="6" md="6">
               <Input
-                label="الأسم بالعربي مفرد"
+                label="الأسم بالعربي"
                 type="text"
-                :errorMessages="name_ar_single_Errors"
-                :model="field.name_ar_single"
-                @changeValue="
-                  (val) => {
-                    field.name_ar_single = val;
-                    $v.field.name_ar_single.$touch();
-                  }
-                "
+                :errorMessages="name_ar_Errors"
+                :model="field.name_ar"
+                @changeValue="updateField('name_ar', $event)"
               ></Input>
             </v-col>
             <v-col cols="12" sm="6" md="6">
               <Input
-                label="الأسم بالعربي جمع"
+                label="الأسم بالإنكليزي"
                 type="text"
-                :errorMessages="name_ar_plural_Errors"
-                :model="field.name_ar_plural"
-                @changeValue="
-                  (val) => {
-                    field.name_ar_plural = val;
-                    $v.field.name_ar_plural.$touch();
-                  }
-                "
-              ></Input>
-            </v-col>
-            <v-col cols="12" sm="6" md="6">
-              <Input
-                label="الأسم بالاجنبي مفرد"
-                type="text"
-                :errorMessages="name_en_single_Errors"
-                :model="field.name_en_single"
-                @changeValue="
-                  (val) => {
-                    field.name_en_single = val;
-                    /*$v.form.name_en.$touch()*/
-                  }
-                "
-              ></Input>
-            </v-col>
-            <v-col cols="12" sm="6" md="6">
-              <Input
-                label="الأسم بالاجنبي جمع"
-                type="text"
-                :errorMessages="name_en_plural_Errors"
-                :model="field.name_en_plural"
-                @changeValue="
-                  (val) => {
-                    field.name_en_plural = val;
-                    /*$v.form.name_en.$touch()*/
-                  }
-                "
+                :errorMessages="name_en_Errors"
+                :model="field.name_en"
+                @changeValue="updateField('name_en', $event)"
               ></Input>
             </v-col>
           </v-row>
@@ -68,14 +31,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <!-- <v-btn
-    color="blue darken-1"
-    text>
-    Cancel
-   </v-btn> -->
-        <div>
-          <Button color="blue darken-1" type="submit" label="حفظ"> </Button>
-        </div>
+        <Button color="blue darken-1" type="submit" label="حفظ"></Button>
       </v-card-actions>
     </v-card>
   </v-form>
@@ -83,147 +39,92 @@
 
 <script>
 import { validationMixin } from "vuelidate";
-import {
-  required,
-  maxLength,
-  nameLength,
-  email,
-  sameAs,
-} from "vuelidate/lib/validators";
-import { mapGetters, mapActions } from "vuex";
+import { required } from "vuelidate/lib/validators";
+
 export default {
   mixins: [validationMixin],
   props: {
     api: Object,
     isNew: Boolean,
-    newItemLabel: {
-      default: "عنصر",
-    },
-    formData: {
-      type: Object,
-      default: () => ({}),
-    },
+    newItemLabel: { default: "عنصر" },
+    formData: { type: Object, default: () => ({}) },
   },
 
   validations: {
     field: {
-      name_ar_plural: {
-        required,
-      },
-      name_en_plural: {
-        required,
-      },
-      name_ar_single: {
-        required,
-      },
-      name_en_single: {
-        required,
-      },
+      name_ar: { required },
+      name_en: { required },
     },
   },
+
   data() {
     return {
-      requried_error_msgs: {
-        required: "هذا الحقل مطلوب.",
-      },
+      requried_error_msgs: { required: "هذا الحقل مطلوب." },
       field: {
-        name_ar_plural: "",
-        name_en_plural: "",
-        name_ar_single: "",
-        name_en_single: "",
+        id: "",
+        name_ar: "",
+        name_en: "",
+        is_active: "1", // يتم تعيينه افتراضيًا كـ "1"
       },
     };
   },
+
   computed: {
-    ...mapGetters(["getForm"]),
-    name_ar_plural_Errors() {
-      const errors = [];
-      if (!this.$v.field.name_ar_plural.$dirty) return errors;
-      !this.$v.field.name_ar_plural.required &&
-        errors.push(this.requried_error_msgs.required);
-      return errors;
-    },
-    name_ar_single_Errors() {
-      const errors = [];
-      if (!this.$v.field.name_ar_single.$dirty) return errors;
-      !this.$v.field.name_ar_single.required &&
-        errors.push(this.requried_error_msgs.required);
-      return errors;
-    },
-    name_en_plural_Errors() {
-      const errors = [];
-      if (!this.$v.field.name_en_plural.$dirty) return errors;
-      !this.$v.field.name_en_plural.required &&
-        errors.push(this.requried_error_msgs.required);
-      return errors;
-    },
-    name_en_single_Errors() {
-      const errors = [];
-      if (!this.$v.field.name_en_single.$dirty) return errors;
-      !this.$v.field.name_en_single.required &&
-        errors.push(this.requried_error_msgs.required);
-      return errors;
-    },
-    form() {
-      return this.getForm;
-    },
     formTitle() {
       return this.newItemLabel;
     },
+    name_ar_Errors() {
+      return !this.$v.field.name_ar.$dirty
+        ? []
+        : !this.$v.field.name_ar.required
+        ? [this.requried_error_msgs.required]
+        : [];
+    },
+    name_en_Errors() {
+      return !this.$v.field.name_en.$dirty
+        ? []
+        : !this.$v.field.name_en.required
+        ? [this.requried_error_msgs.required]
+        : [];
+    },
   },
+
   watch: {
     formData: {
       handler(newData) {
-        if (newData) {
-          this.field = {
-            name_ar_plural: newData.name_ar
-              ? newData.name_ar.split("|")[1]
-              : "",
-            name_en_plural: newData.name_en
-              ? newData.name_en.split("|")[1]
-              : "",
-            name_ar_single: newData.name_ar
-              ? newData.name_ar.split("|")[0]
-              : "",
-            name_en_single: newData.name_en
-              ? newData.name_en.split("|")[0]
-              : "",
-          };
-        } else {
-          this.field = {
-            name_ar_plural: "",
-            name_en_plural: "",
-            name_ar_single: "",
-            name_en_single: "",
-          };
-        }
+        this.field = newData
+          ? {
+              id: newData.id || "",
+              name_ar: newData.name_ar || "",
+              name_en: newData.name_en || "",
+            }
+          : {
+              id: "",
+              name_ar: "",
+              name_en: "",
+              is_active: "1",
+            };
       },
       immediate: true,
     },
   },
+
   methods: {
+    updateField(fieldName, value) {
+      this.field[fieldName] = value;
+      this.$v.field[fieldName].$touch();
+    },
+
     save() {
+      console.log("تم النقر على زر الحفظ");
       this.$v.field.$touch();
       if (!this.$v.field.$invalid) {
-        this.form.name_ar =
-          this.field.name_ar_plural + "|" + this.field.name_ar_single;
-        this.form.name_en =
-          this.field.name_en_single + "|" + this.field.name_en_plural;
-
-        let formdata = new FormData();
-        for (let f in this.form) {
-          formdata.append(f, this.form[f]);
-        }
-        if (!this.isNew && this.form.id) {
-          formdata.append("_method", "PUT");
-        }
-        this.$store.dispatch("sendForm", {
-          api: this.api,
-          form: formdata,
-          isNew: this.isNew,
-        });
-
-        this.$emit("dialogForm", false);
+        const updatedForm = {
+          id: this.field.id,
+          name_ar: this.field.name_ar, // إرسال الاسم بالعربي كنص
+          name_en: this.field.name_en, // إرسال الاسم بالإنكليزي كنص
+        };
+        this.$emit("save", updatedForm);
       } else {
         this.$toast.error("أكمل الحقول المطلوبة");
       }

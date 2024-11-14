@@ -72,11 +72,15 @@ export default {
   },
   methods: {
     save() {
-      // console.log("Saving form data:", this.form);
+      // سجل البيانات قبل الحفظ
+      console.log("Form data before saving:", this.form);
+      console.log("Fields being used:", this.fields);
+
       let formdata = new FormData();
       for (let f in this.form) {
         if (this.form[f] !== undefined) {
           formdata.append(f, this.form[f]);
+          console.log(`Appending ${f}:`, this.form[f]);
         }
       }
       if (!this.isNew) {
@@ -98,7 +102,7 @@ export default {
     },
   },
   created() {
-    console.log("Form data:", this.form);
+    console.log("Form data on created:", this.form);
   },
 };
 </script>

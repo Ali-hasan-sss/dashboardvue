@@ -9,7 +9,7 @@
           <v-stepper-header>
             <template v-for="n in steps">
               <v-stepper-step
-                :key="`${n}-step`"
+                :key="`step-${n}`"
                 :complete="e1 > n"
                 :step="n"
                 editable
@@ -17,9 +17,10 @@
               >
                 الخطوة
               </v-stepper-step>
-              <v-divider v-if="n !== steps" :key="n"></v-divider>
+              <v-divider v-if="n !== steps" :key="`divider-${n}`"></v-divider>
             </template>
           </v-stepper-header>
+
           <v-stepper-items>
             <v-stepper-content step="1">
               <v-form>
@@ -639,7 +640,7 @@ export default {
         }
 
         if (!this.isNew) {
-          formdata.append("_method", "PUT"); // استخدم PUT أو PATCH للتعديل
+          formdata.append("_method", "post");
           formdata.append("id", this.id);
         }
 
@@ -677,7 +678,7 @@ export default {
           api: this.api,
           form: formdata,
           isNew: this.isNew, // if creating a new item
-          edit: !this.isNew ? "update" : null, // تحديد نوع التعديل إذا كان موجودًا
+          edit: !this.isNew ? "update" : null,
         });
 
         this.$emit("dialogForm", false);

@@ -8,26 +8,22 @@ const state = () => ({
 const actions = {
   async sendForm({ dispatch, commit }, info) {
     commit("SET_LOADING", true);
-    await axios
-      .post(
-        `${
-          !info.isNew
-            ? info.edit == "edit_state"
-              ? info.api.edit_state
-              : info.api.edit
-            : info.api.create
-        }`,
-        info.form
-      )
-      .then((res) => {
-        // let resultData = res.data.data;
-        dispatch("fetchTableData", info);
-        this._vm.$toast.success("تمت العملية بنجاح");
-      })
-      .catch((err) => {
-        dispatch("fetchTableData", info);
-        this._vm.$toast.error("فشلت العملية");
-      });
+
+    const method = "post";
+    const url = info.isNew
+      ? info.api.create
+      : info.edit === "edit_state"
+      ? info.api.edit_state
+      : info.api.edit;
+
+    try {
+      const res = await axios[method](url, info.form);
+      dispatch("fetchTableData", info);
+      this._vm.$toast.success("تمت العملية بنجاح");
+    } catch (err) {
+      dispatch("fetchTableData", info);
+      this._vm.$toast.error("فشلت العملية");
+    }
   },
   async fetchForm({ commit }, api) {
     commit("SET_LOADING", true);

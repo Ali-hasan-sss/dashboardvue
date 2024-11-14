@@ -419,22 +419,13 @@ export default {
       };
 
       this.$store.dispatch("initForm", form);
+      this.isNew = !val.hasOwnProperty("id");
 
-      this.isNew = false;
-
-      Object.keys(form).map((x) => {
-        if (x.includes("_id")) {
-          if (val[x.replace("_id", "")]) {
-            if (x != "location_id") {
-              form[x] = val[x.replace("_id", "")].id;
-            } else {
-              form[x] = val[x.replace("_id", "")].locations[0].id;
-            }
-          } else {
-            form["estate_office_id"] = val["office"].id;
-          }
-        } else {
-          form[x] = val[x];
+      Object.keys(form).forEach((key) => {
+        if (key.includes("_id") && val[key.replace("_id", "")]) {
+          form[key] = val[key.replace("_id", "")].id;
+        } else if (!key.includes("_id")) {
+          form[key] = val[key];
         }
       });
 
@@ -447,8 +438,8 @@ export default {
     },
     editEstate(estate) {
       this.setEstateForm(estate);
-      this.addEstateForm = true;
       this.isNew = false;
+      this.addEstateForm = true;
     },
     deleteEstate(estateId) {
       this.estateToDelete = estateId;
@@ -461,6 +452,7 @@ export default {
           this.filteredEstates = this.filteredEstates.filter(
             (estate) => estate.id !== this.estateToDelete
           );
+          this.$toast.success("تم حذف العقار بنجاح");
           this.estateToDelete = null;
         } catch (error) {
           console.error("Error deleting estate:", error);
@@ -469,12 +461,9 @@ export default {
       this.deleteDialog = false;
     },
     openAddEstateDialog() {
-      this.setEstateForm({
-        office: { id: this.item.office.id },
-      });
-
-      this.addEstateForm = true;
+      this.setEstateForm({ office: { id: this.item.office.id } });
       this.isNew = true;
+      this.addEstateForm = true;
     },
     applyFilter() {
       if (!this.item || !this.item.estates || !this.item.estates.data) {
@@ -514,34 +503,25 @@ export default {
     },
     async confirmAddEstate() {
       try {
-        const response = await axios.post(
-          "/api/addEstate",
-          this.$store.state.form
-        );
-        this.filteredEstates.push(response.data);
+        const method = this.isNew ? "post" : "put";
+        const url = this.isNew ? "/api/addEstate" : `/api/updateEstate`;
+
+        const response = await axios[method](url, this.$store.state.form);
+
+        if (this.isNew) {
+          this.filteredEstates.push(response.data);
+          this.handleEstateAdded(response.data);
+        } else {
+          this.handleEstateUpdated(response.data);
+        }
+
         this.$emit("dialogForm", false);
         this.fetchEstates();
       } catch (error) {
-        console.error("Error adding estate:", error);
+        console.error("Error saving estate:", error);
       }
     },
-    handleEstateAdded(newEstate) {
-      this.filteredEstates.push(newEstate);
-      this.populateTableData();
-    },
-    handleEstateUpdated(updatedEstate) {
-      // إيجاد العقار المعدل في القائمة
-      const index = this.filteredEstates.findIndex(
-        (estate) => estate.id === updatedEstate.id
-      );
 
-      if (index !== -1) {
-        // تحديث العقار في القائمة المحلية
-        this.$set(this.filteredEstates, index, updatedEstate);
-      }
-
-      this.applyFilter();
-    },
     async fetchEstates() {
       const officeId = this.$route.params.id;
       try {
