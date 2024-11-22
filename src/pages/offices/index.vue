@@ -101,10 +101,16 @@ export default {
       headers: [
         { text: "#", align: "start", sortable: false, value: "id" },
         {
-          text: "الاسم",
+          text: " الاسم بالعربي",
           align: "start",
           sortable: false,
-          value: "name",
+          value: "name_ar",
+        },
+        {
+          text: " الاسم بالانجليزي",
+          align: "start",
+          sortable: false,
+          value: "name_en",
         },
         { text: "الهاتف", value: "mobile" },
         { text: "المحافظة", value: "location.name" },

@@ -1,18 +1,55 @@
 <template>
   <v-container fluid>
-    <v-row>
-      <v-col cols="12">
-        <h2>تفاصيل المستخدم</h2>
-        <v-card v-if="user">
-          <v-card-title>{{ user.fullName }}</v-card-title>
+    <v-row justify="center">
+      <v-col cols="12" md="8" lg="6">
+        <h2 class="text-center">تفاصيل المستخدم</h2>
+        <v-card>
+          <v-avatar size="100" class="mx-auto mb-4" color="primary">
+            <span>{{ user.first_name[0] }}.{{ user.last_name[0] }}</span>
+          </v-avatar>
+          <v-card-title class="justify-center">
+            {{ user.first_name }} {{ user.last_name }}
+          </v-card-title>
           <v-card-text>
-            <p>البريد الإلكتروني: {{ user.email }}</p>
-            <p>الهاتف: {{ user.phoneNO }}</p>
-            <p>الدور: {{ user.role }}</p>
-            <!-- أضف المزيد من التفاصيل حسب الحاجة -->
+            <v-list dense>
+              <v-list-item>
+                <v-list-item-icon>
+                  <v-icon color="primary">mdi-email</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title> البريد الإلكتروني </v-list-item-title>
+                  <v-list-item-subtitle>
+                    {{ user.email || "غير متوفر" }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+
+              <v-list-item>
+                <v-list-item-icon>
+                  <v-icon color="primary">mdi-phone</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title> الهاتف </v-list-item-title>
+                  <v-list-item-subtitle>
+                    {{ user.authentication }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+
+              <v-list-item>
+                <v-list-item-icon>
+                  <v-icon color="primary">mdi-account-circle</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title> الدور </v-list-item-title>
+                  <v-list-item-subtitle>
+                    {{ user.role }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
           </v-card-text>
         </v-card>
-        <v-alert v-else type="error">لم يتم العثور على المستخدم</v-alert>
       </v-col>
     </v-row>
   </v-container>
@@ -31,8 +68,8 @@ export default {
   methods: {
     async fetchUser() {
       try {
-        const response = await axios.get(`/api/users/${this.id}`);
-        this.user = response.data;
+        const response = await axios.get(`/users/${this.id}`);
+        this.user = response.data.data;
       } catch (error) {
         console.error("Error fetching user details:", error);
       }
@@ -45,5 +82,13 @@ export default {
 </script>
 
 <style scoped>
-/* أضف أي تنسيقات مخصصة هنا */
+.text-center {
+  text-align: center;
+}
+
+.v-avatar span {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
 </style>

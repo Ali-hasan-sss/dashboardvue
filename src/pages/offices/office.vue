@@ -118,6 +118,9 @@
             <v-btn class="mx-1" depressed color="primary" @click="setForm(true)"
               >تعديل المكتب</v-btn
             >
+            <v-btn class="mx-1" depressed color="primary" @click="openEditPass">
+              تعديل كلمة المرور
+            </v-btn>
           </v-card-text>
         </v-card>
       </v-col>
@@ -271,6 +274,13 @@
         @estate-added="handleEstateAdded"
       />
     </v-dialog>
+    <v-dialog v-model="EditPass" max-width="500px">
+      <officePassword
+        :officeId="officeId"
+        :onSubmit="handlePasswordUpdate"
+        @close="closeEditPass"
+      />
+    </v-dialog>
     <v-dialog v-model="deleteDialog" max-width="500px">
       <v-card>
         <v-card-title class="headline">تأكيد الحذف</v-card-title>
@@ -299,6 +309,7 @@ import GeneralForm from "../../components/Forms/GeneralForm";
 import exportToExcel from "../../components/ExportToExcelButton.vue";
 import addEstate from "../../components/Forms/EstateForm.vue";
 import OfficeForm from "../../components/Forms/OfficeForm.vue";
+import officePassword from "../../components/Forms/officePassword.vue";
 import axios from "axios";
 
 export default {
@@ -309,6 +320,8 @@ export default {
       open_img: false,
       dialog_form_offer: false,
       dialog_edit: false,
+      EditPass: false, // النافذة الخاصة بتعديل كلمة المرور
+      officeId: "", // تأكد من تعيين القيمة الصحيحة عند التحميل
       addEstateForm: false,
       isNew: false,
       deleteDialog: false,
@@ -347,7 +360,13 @@ export default {
       ],
     };
   },
-  components: { GeneralForm, exportToExcel, addEstate, OfficeForm },
+  components: {
+    GeneralForm,
+    exportToExcel,
+    addEstate,
+    OfficeForm,
+    officePassword,
+  },
   methods: {
     formatDate(val) {
       const date = new Date(val);
@@ -444,6 +463,26 @@ export default {
     deleteEstate(estateId) {
       this.estateToDelete = estateId;
       this.deleteDialog = true;
+    },
+    openEditPass() {
+      this.EditPass = true; // فتح النافذة
+      this.officeId = this.$route.params.id; // قم بتعيين officeId هنا
+    },
+    closeEditPass() {
+      this.EditPass = false; // إغلاق النافذة
+    },
+    async handlePasswordUpdate({ password, officeId }) {
+      // console.log(`Updating password for officeId: ${this.officeId}`);
+      try {
+        const response = await axios.put("/office/changePassword", {
+          password,
+          office_id: officeId,
+        });
+        this.$toast.success("تم تعديل كلمة المرور بنجاح!");
+        this.closeEditPass(); // إغلاق النافذة بعد النجاح
+      } catch (error) {
+        this.$toast.error("حدث خطأ أثناء تعديل كلمة المرور.");
+      }
     },
     async confirmDeleteEstate() {
       if (this.estateToDelete) {

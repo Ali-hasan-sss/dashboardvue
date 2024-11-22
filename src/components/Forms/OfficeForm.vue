@@ -32,9 +32,10 @@
                 @change="selectImage"
               />
             </v-col>
+            <!-- حقل الاسم بالعربية -->
             <v-col cols="12">
               <v-text-field
-                label="الاسم بالعربي"
+                label="اسم المكتب بالعربي"
                 type="text"
                 v-model="form.name_ar"
                 :error-messages="nameErrors"
@@ -43,13 +44,14 @@
             </v-col>
             <v-col cols="12">
               <v-text-field
-                label="الاسم بالانجليزي"
+                label="اسم المكتب بالإنكليزي"
                 type="text"
                 v-model="form.name_en"
                 :error-messages="nameErrors"
                 @input="updateField('name_en', $event)"
               />
             </v-col>
+
             <v-col cols="12">
               <v-text-field
                 label="الهاتف"
@@ -87,20 +89,11 @@
             </v-col>
             <v-col cols="12">
               <v-select
-                :items="Sublocations"
+                :items="Locations"
                 v-model="form.location_id"
                 :error-messages="location_idErrors"
-                label="ضمن الحي"
+                label="ضمن المنطقة"
                 @change="updateField('location_id', $event)"
-              />
-            </v-col>
-            <v-col cols="12">
-              <v-text-field
-                label="كلمة المرور الجديدة"
-                type="password"
-                v-model="form.password"
-                :error-messages="passwordErrors"
-                @input="updateField('password', $event)"
               />
             </v-col>
           </v-row>
@@ -142,126 +135,66 @@ export default {
   data() {
     return {
       img_baseUrl,
-      nameErrors: [],
+      nameArErrors: [],
       nameEnErrors: [],
       longitudeErrors: [],
       latitudeErrors: [],
       location_idErrors: [],
       mobileErrors: [],
-      passwordErrors: [],
     };
   },
   computed: {
-    ...mapGetters(["getForm", "getSubLocations"]),
+    ...mapGetters(["getForm", "getLocations"]),
     form() {
       return this.getForm;
     },
     formTitle() {
       return this.isNew ? "مكتب جديد" : "تعديل المكتب";
     },
-    Sublocations() {
-      return this.getSubLocations;
+    Locations() {
+      return this.getLocations;
     },
   },
   methods: {
-    ...mapActions(["fetchSubLocations"]),
+    ...mapActions(["fetchLocations"]),
     selectImage(val) {
       this.form.logo = val;
       this.form.newLogo = URL.createObjectURL(val);
     },
     save() {
       if (!this.$v.form.$invalid) {
-        // إضافة الحقل الذي يحدد ما إذا تم تغيير الشعار
-        const logoChanged = this.form.newLogo ? 1 : 0;
-
-        // إعداد الطلب الأول (عربي)
-        let formdataAr = new FormData();
-        for (let field in this.form) {
-          if (this.form.hasOwnProperty(field)) {
-            // استبعاد الحقول الخاصة بالاسم
-            if (
-              field !== "name_ar" &&
-              field !== "name_en" &&
-              field !== "name"
-            ) {
-              formdataAr.append(field, this.form[field]);
-            }
+        let formdata = new FormData();
+        for (let f in this.form) {
+          if (this.form.hasOwnProperty(f) && f !== "name") {
+            formdata.append(f, this.form[f]);
           }
         }
-        formdataAr.append("logo_changed", logoChanged);
-        formdataAr.append("name", this.form.name_ar); // الاسم بالعربية
+
+        // إضافة الحقلين name_ar و name_en
+        formdata.append("name_ar", this.form.name_ar || "");
+        formdata.append("name_en", this.form.name_en || "");
+
+        formdata.append("logo_changed", this.form.newLogo ? 1 : 0);
+
+        // إذا لم يكن النموذج جديداً، أضف _method لتحديث البيانات
         if (!this.isNew) {
-          formdataAr.append("_method", "PUT");
+          formdata.append("_method", "PUT");
         }
 
-        // إرسال الطلب باللغة العربية
         this.$store
           .dispatch("sendForm", {
             api: this.api,
-            form: formdataAr,
-            headers: { lang: "ar" }, // هيدر عربي
+            form: formdata,
             isNew: this.isNew,
           })
           .then(() => {
-            // إعداد الطلب الثاني (إنجليزي)
-            let formdataEn = new FormData();
-            for (let field in this.form) {
-              if (this.form.hasOwnProperty(field)) {
-                // استبعاد الحقول الخاصة بالاسم والاسم الفارغ
-                if (
-                  field !== "name_ar" &&
-                  field !== "name_en" &&
-                  field !== "name"
-                ) {
-                  formdataEn.append(field, this.form[field]);
-                }
-              }
-            }
-            formdataEn.append("logo_changed", logoChanged);
-            formdataEn.append("name", this.form.name_en); // استخدم الاسم بالإنجليزية فقط
-
-            if (!this.isNew) {
-              formdataEn.append("_method", "PUT");
-            }
-
-            // طباعة محتوى الطلب والهيدر
-            console.log(
-              "Request Body (English):",
-              Array.from(formdataEn.entries())
-            );
-            console.log("Request Headers (English):", {
-              lang: "en", // هيدر إنجليزي
-              "Accept-Language": "en", // هيدر Accept-Language
-            });
-
-            // إرسال الطلب الثاني
-            return this.$store.dispatch("sendForm", {
-              api: this.api,
-              form: formdataEn,
-              headers: {
-                lang: "en", // هيدر إنجليزي
-                "Accept-Language": "en", // هيدر Accept-Language
-              },
-              isNew: this.isNew,
-            });
-          })
-          .then(() => {
-            this.$emit("dialogForm", false); // إغلاق الفورم بعد النجاح
+            this.$emit("dialogForm", false);
           })
           .catch(() => {
-            this.$toast.error("حدث خطأ أثناء حفظ المكتب.");
+            this.$toast.error("حدث خطأ أثناء حفظ المكتب العقاري.");
           });
       } else {
-        // عرض رسالة توضح الحقول المطلوبة
-        const errors = this.$v.form.$error;
-        if (errors) {
-          const requiredFields = Object.keys(errors).filter(
-            (field) => errors[field].$invalid
-          );
-          this.$toast.error(`الحقول المطلوبة: ${requiredFields.join(", ")}`);
-        } else {
-          this.$toast.error("أكمل الحقول المطلوبة.");
-        }
+        this.$toast.error("أكمل الحقول المطلوبة");
       }
     },
     updateField(field, value) {
@@ -272,7 +205,7 @@ export default {
     },
   },
   mounted() {
-    this.fetchSubLocations();
+    this.fetchLocations("locations");
   },
 };
 </script>
