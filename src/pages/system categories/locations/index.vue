@@ -2,17 +2,21 @@
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
       <v-col>
-        <ExportToExcelButton class="excel-btn" :tableData="tableData" />
-        <!-- Tabs -->
+        <!-- زر التصدير إلى Excel -->
+        <ExportToExcelButton
+          class="excel-btn"
+          :tableData="exportableTableData"
+        />
+        <!-- التبويبات -->
         <v-tabs v-model="tab" align-with-title>
           <v-tabs-slider color="yellow"></v-tabs-slider>
-          <v-tab v-for="(item, i) in items" :key="i">{{ item.country }} </v-tab>
+          <v-tab v-for="(item, i) in items" :key="i">{{ item.country }}</v-tab>
         </v-tabs>
         <v-tabs-items class="mt-5" v-model="tab">
           <v-tab-item v-for="(item, i) in items" :key="i">
-            <!-- List -->
+            <!-- الجدول -->
             <Table
-              v-if="tab == item.tab"
+              v-if="tab == i"
               :newItemLabel="newItemLabel"
               :filter="filter"
               :route_name="route_name"
@@ -29,17 +33,17 @@
             ></Table>
           </v-tab-item>
         </v-tabs-items>
-        <!-- Form -->
+        <!-- النموذج -->
         <v-dialog v-model="dialog_form" max-width="500px">
           <LocationForm
             v-if="dialog_form"
-            newItemLabel="تعديل المنطقة "
+            newItemLabel="تعديل المنطقة"
             :isNew="isNew"
             :api="getApiForForm"
             :id="item_id"
             @dialogForm="dialog_form = false"
-          ></LocationForm
-        ></v-dialog>
+          ></LocationForm>
+        </v-dialog>
       </v-col>
     </v-row>
   </v-container>
@@ -52,19 +56,30 @@ import ExportToExcelButton from "@/components/ExportToExcelButton.vue";
 export default {
   components: {
     LocationForm,
+    ExportToExcelButton,
   },
   data() {
     return {
       item_id: null,
       tab: 0,
-      showOffice: false,
+      dialog_form: false,
       isNew: true,
       create: true,
       edit: true,
       del: false,
       show: false,
       state: false,
+      showOffice: false,
       tableData: [],
+      filter: "",
+      route_name: "transactions-candidate",
+      newItemLabel: "منطقة",
+      title: "الأماكن",
+      headers: [
+        { text: "#", align: "start", sortable: true, value: "id" },
+        { text: "اسم المنطقة", value: "name" },
+        { text: "العمليات", value: "actions", sortable: false },
+      ],
       items: [
         {
           country: "دمشق",
@@ -103,7 +118,7 @@ export default {
           },
         },
         {
-          country: "السويداء ",
+          country: "السويداء",
           tab: "4",
           api: {
             getAll: "locationsByParenId/5",
@@ -166,69 +181,56 @@ export default {
           },
         },
       ],
-      route_name: "transactions-candidate",
-      newItemLabel: "منطقة",
-      filter: "",
-      dialog_form: false,
-      title: "الاماكن",
-      headers: [
-        {
-          text: "#",
-          align: "start",
-          sortable: true,
-          value: "id",
-        },
-        {
-          text: "اسم المنطقة",
-          value: "name",
-        },
-        {
-          text: "العمليات",
-          value: "actions",
-          sortable: false,
-        },
-      ],
     };
   },
-  components: { ExportToExcelButton },
   computed: {
     getApiForForm() {
       return this.items[this.tab].api;
     },
+    exportableTableData() {
+      return this.tableData.map((item, index) => ({
+        رقم: index + 1,
+        اسم_المنطقة: typeof item.name === "object" ? item.name.ar : item.name,
+        خط_الطول: item.longitude,
+        خط_العرض: item.latitude,
+      }));
+    },
   },
   methods: {
-    methods: {
-      async fetchData() {
-        try {
-          const response = await axios.get(this.getApiForForm.getAll);
-          console.log("API Response:", response);
-          if (response.data && response.data.data) {
-            this.tableData = response.data.data;
-          } else {
-            this.tableData = [];
-          }
-        } catch (error) {
-          console.error("Error fetching data:", error);
+    async fetchData() {
+      try {
+        const response = await axios.get(this.getApiForForm.getAll);
+        console.log("Raw API Response:", response.data);
+        if (response.data && response.data.data) {
+          this.tableData = response.data.data.map((item) => ({
+            id: item.id,
+            name: item.name,
+            longitude: item.longitude,
+            latitude: item.latitude,
+          }));
+          console.log(this.tableData);
+        } else {
           this.tableData = [];
+          console.warn(
+            "API response does not contain expected data structure."
+          );
         }
-      },
-      // ...
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        this.tableData = [];
+      }
     },
     setForm(val) {
-      let form = {
+      this.$store.dispatch("initForm", {
         location_id: null,
         name: null,
         parent_id: null,
         longitude: null,
         latitude: null,
-      };
-      // initialize form
-      this.$store.dispatch("initForm", form);
+      });
 
-      // edit
-      if (val != null) {
+      if (val) {
         this.isNew = false;
-        this.$store.dispatch("initForm", form);
         this.$store.dispatch("setForm", {
           location_id: val.id,
           name: val.name,
@@ -245,12 +247,11 @@ export default {
   },
   watch: {
     tab() {
-      this.fetchData(); // Fetch data when the tab changes
+      this.fetchData();
     },
   },
   mounted() {
     this.fetchData();
-    //   this.$store.dispatch('initForm', this.form)
   },
 };
 </script>

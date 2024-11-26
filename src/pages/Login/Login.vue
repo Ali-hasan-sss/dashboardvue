@@ -28,7 +28,7 @@
             <v-col cols="12" class="d-flex justify-center">
               <v-footer>
                 <div class="primary--text">
-                  جميع الحقوق محفوظة ©2021
+                  جميع الحقوق محفوظة ©2024
                   <a href="https://swesshome.com/" class="text-decoration-none"
                     >Swess Home</a
                   >

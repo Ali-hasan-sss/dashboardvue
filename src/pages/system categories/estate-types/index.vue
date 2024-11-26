@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="icons-page">
     <v-row no-gutters class="d-flex justify-space-between mt-2 mb-2">
-      <v-col cols="12" md="6">انواع العقارات</v-col>
+      <v-col cols="12" md="12">انواع العقارات</v-col>
       <v-col>
         <v-btn @click="openNewForm" color="primary" style="margin-bottom: 10px">
           إضافة نوع عقار

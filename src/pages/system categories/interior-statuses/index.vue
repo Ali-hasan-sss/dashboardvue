@@ -12,9 +12,7 @@
           outlined
           dense
         ></v-text-field>
-        <v-btn color="primary" @click="openAddForm">
-          <v-icon left>mdi-plus</v-icon> إضافة نوع ملكية جديد
-        </v-btn>
+        <v-btn color="primary" @click="openAddForm"> إضافة تصنيف جديد </v-btn>
       </v-col>
       <v-col>
         <v-simple-table>
@@ -48,7 +46,7 @@
               <td>
                 <v-switch
                   v-model="item.is_active"
-                  :label="item.is_active === '1' ? 'نشط' : 'غير نشط'"
+                  :label="item.is_active ? 'نشط' : 'غير نشط'"
                   @change="updateActiveStatus(item)"
                 ></v-switch>
               </td>
@@ -219,7 +217,7 @@ export default {
         // تحويل البيانات عند الاستلام إلى منطقية
         this.items = response.data.data.map((item) => ({
           ...item,
-          is_active: item.is_active === "1", // تحويل "1" و "0" إلى true و false
+          is_active: item.is_active === "1",
         }));
       } catch (error) {
         console.error("Error fetching items:", error);

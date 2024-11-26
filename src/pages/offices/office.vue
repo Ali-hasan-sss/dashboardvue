@@ -37,7 +37,8 @@
             </div>
             <div class="d-flex justify-space-between" v-if="item.office">
               <span>المكتب العقاري:</span>
-              <span>{{ item.office.name }}</span>
+              <span> الاسم بالعربية:{{ item.office.name_ar }}</span>
+              <span>الاسم بالنجليزية :{{ item.office.name_en }}</span>
             </div>
             <div class="d-flex justify-space-between" v-if="item.office.mobile">
               <span>رقم صاحب المكتب:</span>
@@ -115,10 +116,19 @@
         <v-card>
           <v-card-subtitle>تعديل المكتب</v-card-subtitle>
           <v-card-text>
-            <v-btn class="mx-1" depressed color="primary" @click="setForm(true)"
+            <v-btn
+              class="mx-1 my-1"
+              depressed
+              color="primary"
+              @click="setForm(true)"
               >تعديل المكتب</v-btn
             >
-            <v-btn class="mx-1" depressed color="primary" @click="openEditPass">
+            <v-btn
+              class="mx-1 my-1"
+              depressed
+              color="primary"
+              @click="openEditPass"
+            >
               تعديل كلمة المرور
             </v-btn>
           </v-card-text>
@@ -378,11 +388,13 @@ export default {
       const form = isOffice
         ? {
             office_id: null,
-            name: null,
+            name_ar: null,
+            name_en: null,
             logo: null,
             longitude: null,
             latitude: null,
             telephone: null,
+            mobile: null,
             location_id: null,
           }
         : { office_id: null };
@@ -394,11 +406,13 @@ export default {
       const formData = {
         office_id: office.id,
         logo_changed: office.logo_changed,
-        name: office.name,
+        name_ar: office.name_ar,
+        name_en: office.name_en,
         logo: office.logo,
         longitude: office.longitude,
         latitude: office.latitude,
         telephone: office.telephone,
+        mobile: office.mobile,
         location_id: office.location.locations[0].id,
       };
 
